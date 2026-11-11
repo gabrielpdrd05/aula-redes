@@ -1,0 +1,14 @@
+{
+  "name": "aula-redes",
+  "private": true,
+  "type": "module",
+  "description": "Curso interactivo de redes (CCNA 200-301) y bases de datos con tutor de IA.",
+  "scripts": {
+    "build": "python3 scripts/build_curso.py && node scripts/paginas.mjs",
+    "check": "python3 scripts/build_curso.py --check && node scripts/paginas.mjs --check",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.2.17"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "nombre": "Aula de Redes",
+  "url": "https://gabrielpdrd05.github.io/aula-redes",
+  "supabaseUrl": "",
+  "supabaseKey": "",
+  "_ayuda": "supabaseUrl y supabaseKey (clave publishable o anon, nunca la service_role) se rellenan al crear el proyecto de Supabase. Después ejecuta: node scripts/paginas.mjs"
+}

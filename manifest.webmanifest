@@ -1,0 +1,12 @@
+{
+  "name": "Aula de Redes",
+  "short_name": "Aula de Redes",
+  "description": "Curso de redes (CCNA) y bases de datos con laboratorios, animaciones y tutor con IA.",
+  "lang": "es",
+  "start_url": "./curso.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f8fb",
+  "theme_color": "#0b7285",
+  "icons": [{ "src": "img/icono.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

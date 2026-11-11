@@ -1,0 +1,11 @@
+<!--{"title": "Simulacro de examen · Aula de Redes", "description": "Simulacro de examen con preguntas de todos los dominios del CCNA, cronómetro y nota por dominio.", "script": "examen.js"}-->
+<section class="page"><div class="narrow" id="examen">
+  <div class="page-head"><h1>Simulacro de examen</h1><p>Preguntas al azar de todos los dominios con el peso del CCNA real. Como en el examen, no puedes volver atrás.</p></div>
+  <div class="card" id="config">
+    <div class="field"><label for="nPreguntas">Número de preguntas</label>
+      <select id="nPreguntas"><option value="20">20 preguntas · 25 minutos</option><option value="50" selected>50 preguntas · 60 minutos</option><option value="100">100 preguntas · 120 minutos (como el real)</option></select></div>
+    <label class="option"><input type="checkbox" id="soloCcna" checked><span>Solo los seis dominios del CCNA (sin bases de datos ni carrera)</span></label>
+    <button type="button" class="btn btn-primary btn-lg" id="empezar">Empezar el simulacro</button>
+    <div id="historialExamenes"></div>
+  </div>
+</div></section>

@@ -1,0 +1,31 @@
+<!--{"title": "Tu curso · Aula de Redes", "description": "Panel del curso: progreso, módulos y lecciones del temario CCNA y de bases de datos.", "script": "panel.js"}-->
+<section class="page"><div class="container">
+  <div class="page-head"><h1 id="saludo">Tu curso</h1><p id="sub">Avanza lección a lección; cada una termina con un cuestionario.</p></div>
+  <div id="avisoCuenta"></div>
+  <div class="dashboard">
+    <div>
+      <article class="card continue-card mb" id="continuar" hidden></article>
+      <div id="modulos" aria-live="polite"><p class="muted">Cargando el temario…</p></div>
+    </div>
+    <aside class="stack">
+      <article class="card">
+        <h2 class="small muted">TU PROGRESO</h2>
+        <div class="grid-2">
+          <div class="stat"><strong id="stLecciones">0</strong><span>lecciones completadas</span></div>
+          <div class="stat"><strong id="stRacha">0</strong><span>días seguidos</span></div>
+          <div class="stat"><strong id="stLabs">0</strong><span>laboratorios</span></div>
+          <div class="stat"><strong id="stExamen">—</strong><span>mejor simulacro</span></div>
+        </div>
+        <div class="meter mt" id="meterTotal"><span></span></div>
+        <p class="small muted" id="pctTotal"></p>
+      </article>
+      <article class="card">
+        <h2 class="small muted">PRÁCTICA RÁPIDA</h2>
+        <p><a href="laboratorio.html?l=lab:subnetting">Entrenador de subnetting</a></p>
+        <p><a href="practica.html">Todos los laboratorios</a></p>
+        <p><a href="examen.html">Simulacro de examen</a></p>
+        <p><a href="tutor.html">Preguntar al tutor</a></p>
+      </article>
+    </aside>
+  </div>
+</div></section>
