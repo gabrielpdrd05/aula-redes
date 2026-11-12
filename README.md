@@ -1,4 +1,4 @@
-# Aula de Redes
+# Loopback
 
 Plataforma de aprendizaje con **tres áreas completas**, de principiante a nivel de empleo: **Redes** (temario completo del **Cisco CCNA 200-301**), **Bases de datos** y **Programación**.
 

@@ -756,7 +756,7 @@ Los casos del navegador entrenan el **criterio**. Para entrenar las **manos** co
 
 ## Qué se practica dónde
 
-| Habilidad | En Aula de Redes | En tu laboratorio |
+| Habilidad | En Loopback | En tu laboratorio |
 |---|---|---|
 | Priorizar, diagnosticar, documentar y comunicar | ✓ Casos y turno de mesa de ayuda | — |
 | Herramientas de Windows (Administrador de tareas, Visor de eventos) | Explicación y retos | ✓ VM con Windows |

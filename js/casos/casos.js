@@ -403,7 +403,7 @@ export function respuestaModelo(caso) {
 export function informeTurno(resultados, fecha = new Date()) {
   const L = [];
   L.push('INFORME DE TURNO · MESA DE AYUDA (proyecto académico simulado)');
-  L.push(`Plataforma: Aula de Redes · Escenario: ${EMPRESA} · Fecha: ${fecha.toISOString().slice(0, 10)}`);
+  L.push(`Plataforma: Loopback · Escenario: ${EMPRESA} · Fecha: ${fecha.toISOString().slice(0, 10)}`);
   L.push('Nota: los tickets, personas y sistemas son ficticios. Este informe documenta una práctica de formación, no experiencia laboral.');
   L.push('');
   const hechos = Object.entries(resultados).filter(([id]) => CASOS[id]);

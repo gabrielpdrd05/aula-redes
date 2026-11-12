@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   // Solo se ejecuta aislado: con origen opaco y dentro de un iframe.
-  if (window.parent === window || self.origin !== 'null') { document.documentElement.textContent = 'Este entorno solo funciona dentro de Aula de Redes.'; return; }
+  if (window.parent === window || self.origin !== 'null') { document.documentElement.textContent = 'Este entorno solo funciona dentro de Loopback.'; return; }
 
   var BASE = new URL('.', location.href).href;
   var CODIGO_WORKER = [

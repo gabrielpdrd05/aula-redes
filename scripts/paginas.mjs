@@ -17,7 +17,7 @@ function atobSafe(k) { try { return Buffer.from(k.split('.')[1] || '', 'base64')
 const connect = ["'self'", supa, supa && supa.replace('https://', 'wss://')].filter(Boolean).join(' ');
 const CSP = `default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src ${connect}; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests`;
 
-const LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><circle cx="16" cy="9" r="3.2" fill="var(--accent-ink)"/><circle cx="8.5" cy="22.5" r="3.2" fill="var(--accent-ink)"/><circle cx="23.5" cy="22.5" r="3.2" fill="var(--accent-ink)"/><path d="M16 12.2v4.3M16 16.5l-5.4 3.6M16 16.5l5.4 3.6" stroke="var(--accent-ink)" stroke-width="2" stroke-linecap="round"/></svg>';
+const LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M22.5 10.5A8.5 8.5 0 1 1 9.5 10.5" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round"/><path d="M12.6 6.9 12.1 12.9 6.9 8.6Z" fill="var(--accent-ink)" stroke="var(--accent-ink)" stroke-width="1" stroke-linejoin="round"/><circle cx="16" cy="16" r="3.4" fill="var(--accent-ink)"/></svg>';
 const ICON = {
   luces: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3Z"/></svg>',
   curso: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2.5Z"/><path d="M8 7h7M8 11h5"/></svg>',
@@ -33,7 +33,7 @@ const NAV = [['curso.html', 'Curso', 'curso'], ['practica.html', 'Práctica', 'p
 function header(active) {
   const links = NAV.map(([href, label]) => `<a href="${href}"${active === href ? ' aria-current="page"' : ''}>${label}</a>`).join('');
   return `<header class="site-header"><div class="container">
-  <a class="brand" href="./">${LOGO}<span>Aula de Redes</span></a>
+  <a class="brand" href="./">${LOGO}<span>Loopback</span></a>
   <nav class="nav" aria-label="Principal">${links}</nav>
   <div class="header-actions">
     <button type="button" class="btn btn-quiet theme-toggle luces-toggle" id="lucesToggle" aria-pressed="true" aria-label="Luces LED de la interfaz" title="Encender o apagar las luces LED">${ICON.luces}</button>
@@ -47,7 +47,7 @@ function mobileNav(active) {
   return `<nav class="mobile-nav" aria-label="Navegación móvil">${[...NAV.filter(([h]) => h !== 'comandos.html' && h !== 'repaso.html' && h !== 'rutas.html'), ['cuenta.html', 'Cuenta', 'cuenta']].map(([href, label, icon]) => `<a href="${href}"${active === href ? ' aria-current="page"' : ''}>${ICON[icon]}<span>${label}</span></a>`).join('')}</nav>`;
 }
 const footer = `<footer class="site-footer"><div class="container">
-  <span>Aula de Redes · Curso de redes alineado con el temario oficial del Cisco CCNA 200-301. No es un curso oficial de Cisco.</span>
+  <span>Loopback · Redes, bases de datos, programación y empleo en TI desde cero. El temario de redes sigue el Cisco CCNA 200-301; no es un curso oficial de Cisco.</span>
   <span><a href="privacidad.html">Privacidad</a> · <a href="terminos.html">Términos</a></span>
 </div></footer>`;
 

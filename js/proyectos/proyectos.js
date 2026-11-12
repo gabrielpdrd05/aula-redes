@@ -237,7 +237,7 @@ export function evaluar(id, eqs) {
 export function informe(id, eqs, fecha = new Date()) {
   const p = PROYECTOS[id];
   const ev = evaluar(id, eqs);
-  const L = [`${p.titulo}`, `Informe generado el ${fecha.toLocaleString('es')} en Aula de Redes`, '', `Requisitos cumplidos: ${ev.cumplidos}/${ev.total}${ev.completo ? ' — PROYECTO COMPLETADO' : ''}`, ''];
+  const L = [`${p.titulo}`, `Informe generado el ${fecha.toLocaleString('es')} en Loopback`, '', `Requisitos cumplidos: ${ev.cumplidos}/${ev.total}${ev.completo ? ' — PROYECTO COMPLETADO' : ''}`, ''];
   for (const f of ev.fases) { L.push(f.titulo); for (const r of f.resultados) L.push(`  [${r.ok ? 'x' : ' '}] ${r.texto}`); L.push(''); }
   L.push('Pruebas de extremo a extremo');
   for (const t of ev.pruebas) { L.push(`  ${t.ok ? 'OK ' : 'NO '} ${t.texto}`); for (const s of t.pasos) L.push(`      ${s.ok ? '✓' : '✗'} ${s.texto}${!s.ok && s.detalle ? ' — ' + s.detalle : ''}`); }

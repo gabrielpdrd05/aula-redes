@@ -130,7 +130,7 @@ const PRIV_SHOW = [
   ['show ip nat translations', s => showNat(s)],
   ['show history', s => s.historial.slice(-20).map(h => '  ' + h).join('\n')],
   ['show clock', () => '*' + new Date().toUTCString()],
-  ['show version', s => `Cisco IOS Software (simulador de Aula de Redes), ${s.tipo === 'switch' ? 'C2960' : 'ISR4321'}\n${s.hostname} uptime is 12 minutes\nConfiguration register is 0x2102`],
+  ['show version', s => `Cisco IOS Software (simulador de Loopback), ${s.tipo === 'switch' ? 'C2960' : 'ISR4321'}\n${s.hostname} uptime is 12 minutes\nConfiguration register is 0x2102`],
 ];
 const PRIV = [
   ...PRIV_SHOW,
@@ -151,7 +151,7 @@ const USER = [
   ['show ip interface brief', s => showIpIntBrief(s)],
   ['show interfaces status', s => showIfStatus(s)],
   ['show cdp neighbors', s => showCdp(s)],
-  ['show version', s => `Cisco IOS Software (simulador de Aula de Redes)\n${s.hostname} uptime is 12 minutes`],
+  ['show version', s => `Cisco IOS Software (simulador de Loopback)\n${s.hostname} uptime is 12 minutes`],
 ];
 
 const salirA = modo => s => { s.modo = modo; s.ctx = null; };

@@ -18,7 +18,7 @@ const MONTAR = {
 if (!info) {
   box.replaceChildren(el('h1', {}, 'Laboratorio no encontrado'), el('a', { class: 'btn btn-primary', href: 'practica.html' }, 'Ver los laboratorios'));
 } else {
-  document.title = `${info.titulo} · Aula de Redes`;
+  document.title = `${info.titulo} · Loopback`;
   const [tipo, id] = clave.split(':');
   const holder = el('div');
   box.replaceChildren(el('div', { class: 'page-head' }, el('h1', {}, info.titulo), tipo === 'lab' ? el('p', {}, info.texto) : null), holder);

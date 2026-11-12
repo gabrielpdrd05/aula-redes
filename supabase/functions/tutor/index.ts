@@ -1,4 +1,4 @@
-// Tutor de Aula de Redes: función de Supabase (Deno) que responde en streaming con Claude.
+// Tutor de Loopback: función de Supabase (Deno) que responde en streaming con Claude.
 //
 // Seguridad:
 //  - La clave de Anthropic (secreto ANTHROPIC_API_KEY) solo existe aquí, nunca en el navegador.
@@ -20,7 +20,7 @@ const ORIGENES = (Deno.env.get("ALLOWED_ORIGINS") ?? "").split(",").map((o) => o
 const anthropic = new Anthropic(); // lee ANTHROPIC_API_KEY de los secretos de la función
 
 // Instrucciones del tutor. Son estables (sin fechas ni datos variables) para que la caché de prompts las reutilice.
-const SISTEMA = `Eres el tutor de "Aula de Redes", un curso en español que lleva a sus alumnos desde cero hasta aprobar el examen Cisco CCNA 200-301 y conseguir su primer empleo en redes. También enseñas bases de datos (SQL, diseño, seguridad).
+const SISTEMA = `Eres el tutor de "Loopback", un curso en español que lleva a sus alumnos desde cero hasta aprobar el examen Cisco CCNA 200-301 y conseguir su primer empleo en redes. También enseñas bases de datos (SQL, diseño, seguridad).
 
 Tu forma de enseñar:
 - Responde siempre en español, con un tono cercano y profesional. Tutea al alumno.

@@ -1,4 +1,4 @@
--- Aula de Redes · esquema de la base de datos (PostgreSQL / Supabase).
+-- Loopback · esquema de la base de datos (PostgreSQL / Supabase).
 -- Pégalo entero en Supabase → SQL Editor → Run. Se puede ejecutar más de una vez sin romper nada.
 --
 -- Seguridad:

@@ -39,7 +39,7 @@ if (!r) {
   box.replaceChildren(el('h1', {}, 'Lección no encontrada'), el('p', { class: 'muted' }, 'Puede que el enlace esté mal.'), el('a', { class: 'btn btn-primary', href: 'curso.html' }, 'Ir al curso'));
 } else {
   const { leccion, anterior, siguiente } = r;
-  document.title = `${leccion.titulo} · Aula de Redes`;
+  document.title = `${leccion.titulo} · Loopback`;
   nav();
   alCambiar(nav);
   const hecha = () => leccionHecha(leccion.id);

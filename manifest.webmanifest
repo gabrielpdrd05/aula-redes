@@ -1,7 +1,7 @@
 {
-  "name": "Aula de Redes",
-  "short_name": "Aula de Redes",
-  "description": "Curso de redes (CCNA) y bases de datos con laboratorios, animaciones y tutor con IA.",
+  "name": "Loopback · Redes, programación y empleo TI",
+  "short_name": "Loopback",
+  "description": "Redes (CCNA), bases de datos, programación y empleo en TI desde cero, con laboratorios, casos prácticos y videos.",
   "lang": "es",
   "start_url": "./curso.html",
   "scope": "./",

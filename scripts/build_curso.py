@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compila el temario de Aula de Redes.
+"""Compila el temario de Loopback.
 
 Lee los módulos escritos en Markdown (contenido/*.md) y genera:
   - data/curso.json   estructura completa (módulos, lecciones ya analizadas en bloques y cuestionarios)
