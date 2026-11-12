@@ -669,6 +669,49 @@ details[open] > :not(summary) { transition: opacity 180ms ease; }
   a.lab-card:hover, a.card.feature:hover, a.video-card:hover { transform: none; }
 }
 
+/* ---------------------------------------------------------------- luces LED
+   Un destello azul recorre el borde de los recuadros y la línea de la barra superior. Es decorativo: no se anima
+   con «reducir movimiento» y el botón 💡 de la cabecera lo apaga (se recuerda en este navegador).
+   El anillo es un pseudoelemento con máscara (solo se ve el borde) y un degradado cónico cuyo ángulo se anima. */
+@property --led-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+:root { --led-a: #1d4ed8; --led-b: #38bdf8; --led-ancho: 2px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --led-a: #3b82f6; --led-b: #93c5fd; } }
+:root[data-theme="dark"] { --led-a: #3b82f6; --led-b: #93c5fd; }
+:root:not(.sin-luces) :is(.card, .lab, .anim, .video, .tabs, .module, .quiz, .nav, .alert) { position: relative; }
+:root:not(.sin-luces) :is(.card, .lab, .anim, .video, .tabs, .module, .quiz, .nav, .alert)::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: var(--led-ancho); pointer-events: none; z-index: 2;
+  background: conic-gradient(from var(--led-ang), transparent 0deg 250deg, color-mix(in srgb, var(--led-a) 35%, transparent) 280deg, var(--led-a) 318deg, var(--led-b) 342deg, #fff 350deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: led-giro 7s linear infinite;
+}
+/* Cada recuadro con su propio desfase y velocidad, para que las luces no vayan sincronizadas. */
+:root:not(.sin-luces) :is(.card, .lab, .anim, .video, .module, .quiz):nth-child(3n+2)::after { animation-delay: -2.4s; animation-duration: 8s; }
+:root:not(.sin-luces) :is(.card, .lab, .anim, .video, .module, .quiz):nth-child(3n)::after { animation-delay: -4.8s; animation-duration: 6.5s; }
+:root:not(.sin-luces) .tabs::after { animation-duration: 9s; }
+:root:not(.sin-luces) .nav::after { animation-duration: 6s; }
+@keyframes led-giro { to { --led-ang: 360deg; } }
+/* Menú superior: contorno sutil para que el anillo de luz tenga dónde correr. */
+.nav { padding: 4px; border-radius: 12px; border: 1px solid transparent; }
+:root:not(.sin-luces) .nav { border-color: var(--line); }
+:root:not(.sin-luces) .nav a[aria-current="page"] { box-shadow: 0 0 0 1px color-mix(in srgb, var(--led-b) 45%, transparent), 0 0 14px color-mix(in srgb, var(--led-a) 35%, transparent); }
+/* Barra superior y barra inferior del móvil: un destello que barre la línea de borde. */
+.site-header, .mobile-nav { overflow-x: clip; }
+:root:not(.sin-luces) .site-header::after, :root:not(.sin-luces) .mobile-nav::before {
+  content: ''; position: absolute; left: 0; width: 32%; height: 2px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--led-a) 35%, var(--led-b) 70%, #fff 85%, transparent);
+  box-shadow: 0 0 10px var(--led-b);
+  animation: led-barrido 5.5s linear infinite;
+}
+:root:not(.sin-luces) .site-header::after { bottom: -1px; }
+:root:not(.sin-luces) .mobile-nav::before { top: -1px; animation-delay: -2.7s; }
+@keyframes led-barrido { from { transform: translateX(-100%); } to { transform: translateX(315%); } }
+.luces-toggle[aria-pressed="true"] { color: var(--led-a); }
+.luces-toggle[aria-pressed="true"] svg { filter: drop-shadow(0 0 4px var(--led-b)); }
+@media (prefers-reduced-motion: reduce) {
+  :root :is(.card, .lab, .anim, .video, .tabs, .module, .quiz, .nav, .alert)::after, :root .site-header::after, :root .mobile-nav::before { animation: none; display: none; }
+}
+
 /* ---------------------------------------------------------------- adaptación */
 @media (max-width: 980px) {
   .hero-grid, .dashboard, .lesson-layout, .cli-layout { grid-template-columns: 1fr; }

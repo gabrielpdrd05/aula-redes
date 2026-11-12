@@ -52,7 +52,21 @@ export const local = {
   del(k) { try { localStorage.removeItem(k); } catch { /* nada */ } },
 };
 
+function initLuces() {
+  const btn = $('#lucesToggle');
+  if (!btn) return;
+  const root = document.documentElement;
+  const pintar = () => btn.setAttribute('aria-pressed', String(!root.classList.contains('sin-luces')));
+  pintar();
+  btn.addEventListener('click', () => {
+    root.classList.toggle('sin-luces');
+    try { localStorage.setItem('aula:luces', root.classList.contains('sin-luces') ? 'off' : 'on'); } catch { /* nada */ }
+    pintar();
+  });
+}
+
 function initTheme() {
+  initLuces();
   const btn = $('#themeToggle');
   if (!btn) return;
   btn.addEventListener('click', () => {

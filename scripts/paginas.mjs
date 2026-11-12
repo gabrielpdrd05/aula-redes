@@ -19,6 +19,7 @@ const CSP = `default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src
 
 const LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><circle cx="16" cy="9" r="3.2" fill="var(--accent-ink)"/><circle cx="8.5" cy="22.5" r="3.2" fill="var(--accent-ink)"/><circle cx="23.5" cy="22.5" r="3.2" fill="var(--accent-ink)"/><path d="M16 12.2v4.3M16 16.5l-5.4 3.6M16 16.5l5.4 3.6" stroke="var(--accent-ink)" stroke-width="2" stroke-linecap="round"/></svg>';
 const ICON = {
+  luces: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3Z"/></svg>',
   curso: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2.5Z"/><path d="M8 7h7M8 11h5"/></svg>',
   practica: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="m7 9 3 2-3 2M12 14h5"/></svg>',
   buscar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
@@ -35,6 +36,7 @@ function header(active) {
   <a class="brand" href="./">${LOGO}<span>Aula de Redes</span></a>
   <nav class="nav" aria-label="Principal">${links}</nav>
   <div class="header-actions">
+    <button type="button" class="btn btn-quiet theme-toggle luces-toggle" id="lucesToggle" aria-pressed="true" aria-label="Luces LED de la interfaz" title="Encender o apagar las luces LED">${ICON.luces}</button>
     <button type="button" class="btn btn-quiet theme-toggle" id="themeToggle" aria-label="Cambiar entre tema claro y oscuro">${ICON.tema}</button>
     <a class="btn btn-ghost btn-sm" href="cuenta.html" data-auth="out">Entrar</a>
     <a class="avatar" href="cuenta.html" data-auth="in" hidden aria-label="Mi cuenta"><span data-user="initials">?</span></a>
