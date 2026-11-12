@@ -2,6 +2,6 @@
 export const CONFIG = Object.freeze({
   "nombre": "Aula de Redes",
   "url": "https://gabrielpdrd05.github.io/aula-redes",
-  "supabaseUrl": "",
-  "supabaseKey": ""
+  "supabaseUrl": "https://uwwvywmsolckebbuktpy.supabase.co",
+  "supabaseKey": "sb_publishable_2iVbLuH2rw7L0_4SALyQfA_X407VYv-"
 });
