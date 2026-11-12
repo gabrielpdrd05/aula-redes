@@ -44,6 +44,7 @@ KNOWN = {
     "lab": {"subnetting", "binario", "vlsm"},
     "cli": {"basico", "vlan", "trunk", "estatica", "ospf", "acl", "ssh", "portsecurity", "router", "intervlan", "dhcp", "nat",
             "averia-puerto", "averia-trunk", "averia-gestion", "averia-ruta", "averia-ospf", "averia-ssh", "averia-acl", "averia-duplex"},
+    "proyecto": {"oficina"},
     "sql": {"select", "join", "agregacion", "funciones", "subconsultas", "modificar", "ddl", "ventanas", "inventario"},
     "code": {"python-basico", "python-condicionales", "python-bucles", "python-colecciones", "python-redes", "python-poo",
              "js-basico", "js-arrays", "js-avanzado", "python-libre", "js-libre"},

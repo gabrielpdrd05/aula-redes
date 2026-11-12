@@ -4,7 +4,7 @@ import { cargarCurso, buscarLeccion, numeroModulo } from '../curso.js';
 import { renderBlocks } from '../render.js';
 import { montarQuiz } from '../quiz.js';
 import { crearTutor } from '../tutor.js';
-import { cargar, alCambiar, completarLeccion, guardarQuiz, leccionHecha, notaQuiz } from '../progreso.js';
+import { cargar, alCambiar, completarLeccion, guardarQuiz, leccionHecha, notaQuiz, registrarRespuestas } from '../progreso.js';
 
 iniciarPagina();
 const box = $('#leccion');
@@ -63,9 +63,12 @@ if (!r) {
       siguiente ? el('a', { class: 'btn btn-primary', href: 'leccion.html?id=' + siguiente.id }, siguiente.titulo + ' ›') : el('a', { class: 'btn btn-primary', href: 'examen.html' }, 'Hacer un simulacro ›')));
 
   if (leccion.quiz?.length) {
-    montarQuiz(quizBox, leccion.quiz, {
+    montarQuiz(quizBox, leccion.quiz.map((q, i) => ({ ...q, id: `${leccion.id}#${i}` })), {
       anterior: notaQuiz(leccion.id),
-      alTerminar: async (aciertos, total) => {
+      alTerminar: async (aciertos, total, detalle) => {
+        registrarRespuestas(detalle, 'leccion');
+        const falladas = detalle.filter(d => !d.ok).length;
+        if (falladas) quizBox.querySelector('.quiz-result')?.append(' ', el('a', { href: 'repaso.html?leccion=' + leccion.id }, `${falladas === 1 ? 'La que has fallado se ha añadido' : `Las ${falladas} que has fallado se han añadido`} a tu repaso →`));
         await guardarQuiz(leccion.id, aciertos, total);
         if (aciertos / total >= 0.7 && !hecha()) { await completarLeccion(leccion.id); pintarBoton(); toast('¡Aprobado! Lección completada.'); }
       },

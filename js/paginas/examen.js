@@ -3,7 +3,7 @@
 import { iniciarPagina, el, $, setMeter, pct, plural } from '../core.js';
 import { cargarCurso } from '../curso.js';
 import { barajar, prepararPregunta, repartir } from '../quiz.js';
-import { cargar, guardarExamen, examenes } from '../progreso.js';
+import { cargar, guardarExamen, examenes, registrarRespuestas } from '../progreso.js';
 
 iniciarPagina();
 const raiz = $('#examen');
@@ -86,6 +86,8 @@ function empezar() {
     const puntos = respuestas.filter(Boolean).length;
     const nota = pct(puntos, preguntas.length);
     await guardarExamen({ puntos, total: preguntas.length, dominios, segundos });
+    // Las preguntas falladas pasan al repaso (las que no dio tiempo a contestar no cuentan).
+    registrarRespuestas(preguntas.map((q, k) => ({ id: q.id, ok: respuestas[k] })).filter((r, k) => k < respuestas.length), 'examen');
     const fallos = preguntas.map((q, k) => ({ q, ok: respuestas[k] })).filter(x => !x.ok);
     const barras = Object.entries(dominios).map(([id, d]) => {
       const m = el('div', { class: 'meter' + (pct(d.p, d.t) < OBJETIVO ? ' meter-warn' : '') }, el('span'));
@@ -101,7 +103,7 @@ function empezar() {
         el('p', {}, el('strong', {}, q.q)),
         el('p', { class: 'small' }, 'Correcta: ', q.opciones.filter(o => o.correcta).map(o => o.texto).join(' · ')),
         el('p', { class: 'small muted' }, q.explain, ' ', el('a', { href: 'leccion.html?id=' + q.id.split('#')[0] }, 'Ver la lección'))))) : null,
-      el('div', { class: 'hero-cta' }, el('a', { class: 'btn btn-primary', href: 'examen.html' }, 'Otro simulacro'), el('a', { class: 'btn btn-ghost', href: 'curso.html' }, 'Volver al curso')));
+      el('div', { class: 'hero-cta' }, fallos.length ? el('a', { class: 'btn btn-primary', href: 'repaso.html' }, `Repasar mis ${fallos.length} fallos`) : null, el('a', { class: 'btn ' + (fallos.length ? 'btn-ghost' : 'btn-primary'), href: 'examen.html' }, 'Otro simulacro'), el('a', { class: 'btn btn-ghost', href: 'curso.html' }, 'Volver al curso')));
     scrollTo({ top: 0 });
   }
   pregunta();

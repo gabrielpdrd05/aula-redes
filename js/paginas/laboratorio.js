@@ -11,6 +11,7 @@ const MONTAR = {
   cli: () => import('../labs/cli-ui.js').then(m => m.montarCli),
   sql: () => import('../labs/sql-lab.js').then(m => m.montarSql),
   code: () => import('../codigo/codigo-ui.js').then(m => m.montarCodigo),
+  proyecto: () => import('../proyectos/proyecto-ui.js').then(m => m.montarProyecto),
 };
 if (!info) {
   box.replaceChildren(el('h1', {}, 'Laboratorio no encontrado'), el('a', { class: 'btn btn-primary', href: 'practica.html' }, 'Ver los laboratorios'));

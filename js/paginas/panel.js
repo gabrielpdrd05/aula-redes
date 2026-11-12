@@ -5,6 +5,7 @@ import { cuentasActivas } from '../auth.js';
 import { CONFIG } from '../config.js';
 import { cargarCurso, numeroModulo } from '../curso.js';
 import { CATALOGO } from '../labs/catalogo.js';
+import { practicasPendientes, temasAReforzar, resumenRepaso } from '../recomendaciones.js';
 import { cargar, alCambiar, leccionHecha, notaQuiz, labHecho, examenes, racha } from '../progreso.js';
 
 const usuario = await iniciarPagina();
@@ -84,6 +85,8 @@ function pintar() {
     : [el('div', {}, el('span', { class: 'eyebrow' }, '¡Curso completado!'), el('h2', {}, 'Ahora, a por el examen'), el('p', { class: 'muted small' }, 'Haz simulacros de 100 preguntas hasta superar el 85 % de forma constante.')),
        el('a', { class: 'btn btn-primary btn-lg', href: 'examen.html?area=' + area }, 'Simulacro')]));
 
+  pintarContinua();
+
   if (vista === 'niveles') {
     $('#modulos').replaceChildren(...NIVEL_INFO.map(nv => {
       const lecciones = todas.filter(l => l.nivel === nv.n);
@@ -106,6 +109,34 @@ $('#areas').addEventListener('click', e => {
   abiertos.clear();
   pintar();
 });
+// "Continúa por aquí": repaso de hoy, prácticas pendientes de lo estudiado y temas a reforzar (del área elegida).
+function pintarContinua() {
+  const r = resumenRepaso(curso, area);
+  const pendientes = practicasPendientes(curso, area, 3);
+  const temas = temasAReforzar(curso, area).slice(0, 3);
+  const nivelActual = siguienteNivel();
+  const sugeridas = pendientes.length ? pendientes : CATALOGO.filter(l => l.area === area && !l.libre && !labHecho(l.progreso) && (!nivelActual || l.nivel === nivelActual)).slice(0, 2);
+
+  const repasoCard = el('article', { class: 'card' },
+    el('h3', {}, 'Repaso de hoy'),
+    r.hoy ? el('div', { class: 'count' }, String(r.hoy)) : null,
+    el('p', { class: 'small muted' }, r.hoy ? `${r.hoy === 1 ? 'pregunta fallada te toca' : 'preguntas falladas te tocan'} hoy.` : r.total ? `Nada para hoy. ${r.dominadas} de ${r.total} preguntas dominadas.` : 'Las preguntas que falles aparecerán aquí para repasarlas.'),
+    el('a', { class: 'btn ' + (r.hoy ? 'btn-primary' : 'btn-ghost') + ' btn-sm', href: 'repaso.html' }, r.hoy ? 'Repasar ahora' : 'Ver mi repaso'));
+  const practicasCard = el('article', { class: 'card' },
+    el('h3', {}, pendientes.length ? 'Prácticas pendientes' : 'Prácticas recomendadas'),
+    sugeridas.length ? el('ul', {}, sugeridas.map(p => el('li', {}, el('a', { href: 'laboratorio.html?l=' + p.clave }, (p.grupo === 'averias' ? '🔧 ' : p.grupo === 'proyectos' ? '🏗️ ' : '') + p.titulo), p.leccion ? el('small', {}, 'De la lección «' + p.leccion.titulo + '»') : el('small', {}, NIVEL_INFO.find(n => n.clave === p.nivel)?.titulo || '')))) : el('p', { class: 'small muted' }, '¡Tienes todas las prácticas al día!'),
+    el('a', { class: 'small', href: 'practica.html#area-' + area }, 'Ver todas las prácticas →'));
+  const temasCard = el('article', { class: 'card' },
+    el('h3', {}, 'Temas a reforzar'),
+    temas.length ? el('ul', {}, temas.map(t => el('li', {}, el('a', { href: 'repaso.html?leccion=' + t.leccion.id }, t.leccion.titulo),
+      el('small', {}, [t.enRepaso ? `${t.enRepaso} en repaso` : null, t.suspendido ? `cuestionario ${t.nota.puntos}/${t.nota.total}` : null].filter(Boolean).join(' · '))))) : el('p', { class: 'small muted' }, 'Ningún tema flojo por ahora. Cuando falles preguntas o suspendas un cuestionario, te diremos qué repasar.'));
+  $('#continua').replaceChildren(repasoCard, practicasCard, temasCard);
+}
+function siguienteNivel() {
+  const l = ruta().find(x => !leccionHecha(x.id));
+  return l ? NIVEL_INFO[l.nivel - 1].clave : null;
+}
+
 $('#vistas').addEventListener('click', e => {
   const b = e.target.closest('button');
   if (!b || b.dataset.vista === vista) return;

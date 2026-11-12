@@ -23,7 +23,7 @@
 <a class="skip" href="#main">Saltar al contenido</a>
 <header class="site-header"><div class="container">
   <a class="brand" href="./"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><circle cx="16" cy="9" r="3.2" fill="var(--accent-ink)"/><circle cx="8.5" cy="22.5" r="3.2" fill="var(--accent-ink)"/><circle cx="23.5" cy="22.5" r="3.2" fill="var(--accent-ink)"/><path d="M16 12.2v4.3M16 16.5l-5.4 3.6M16 16.5l5.4 3.6" stroke="var(--accent-ink)" stroke-width="2" stroke-linecap="round"/></svg><span>Aula de Redes</span></a>
-  <nav class="nav" aria-label="Principal"><a href="curso.html" aria-current="page">Curso</a><a href="practica.html">Práctica</a><a href="comandos.html">Comandos</a><a href="examen.html">Examen</a><a href="tutor.html">Buscar</a></nav>
+  <nav class="nav" aria-label="Principal"><a href="curso.html" aria-current="page">Curso</a><a href="practica.html">Práctica</a><a href="comandos.html">Comandos</a><a href="examen.html">Examen</a><a href="repaso.html">Repaso</a><a href="tutor.html">Buscar</a></nav>
   <div class="header-actions">
     <button type="button" class="btn btn-quiet theme-toggle" id="themeToggle" aria-label="Cambiar entre tema claro y oscuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg></button>
     <a class="btn btn-ghost btn-sm" href="cuenta.html" data-auth="out">Entrar</a>
@@ -41,7 +41,9 @@
         <button type="button" role="tab" data-area="bd" aria-selected="false">🗄️ Bases de datos</button>
         <button type="button" role="tab" data-area="prog" aria-selected="false">💻 Programación</button>
       </div>
+      <h2 class="section-title">Continúa por aquí</h2>
       <article class="card continue-card mb" id="continuar" hidden></article>
+      <div class="next-panel" id="continua" aria-live="polite"></div>
       <div class="tabs view-tabs" role="tablist" aria-label="Cómo ver el temario" id="vistas">
         <button type="button" role="tab" data-vista="niveles" aria-selected="true">Ruta por niveles</button>
         <button type="button" role="tab" data-vista="modulos" aria-selected="false" id="vistaModulos">Por módulos del CCNA</button>
@@ -63,6 +65,7 @@
       <article class="card">
         <h2 class="small muted">PRÁCTICA RÁPIDA</h2>
         <p><a href="laboratorio.html?l=lab:subnetting" id="practicaArea">Entrenador de subnetting</a></p>
+        <p><a href="repaso.html">Repaso de errores</a></p>
         <p><a href="practica.html">Todos los laboratorios</a></p>
         <p><a href="comandos.html">Guía de comandos Cisco</a></p>
         <p><a href="examen.html">Simulacro de examen</a></p>

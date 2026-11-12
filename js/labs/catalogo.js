@@ -2,6 +2,7 @@
 import { LABS } from './ios-labs.js';
 import { EJERCICIOS } from './sql-ejercicios.js';
 import { EJERCICIOS as CODIGO } from '../codigo/ejercicios.js';
+import { PROYECTOS } from '../proyectos/proyectos.js';
 
 const SQL_INFO = {
   select: ['Consultas SELECT y filtros', 'principiante'],
@@ -19,6 +20,7 @@ export const NIVELES = { principiante: 'Nivel 1 · Principiante', intermedio: 'N
 export const AREAS = { redes: 'Redes', bd: 'Bases de datos', prog: 'Programación' };
 
 export const CATALOGO = [
+  ...Object.values(PROYECTOS).map(p => ({ clave: 'proyecto:' + p.id, area: p.area, grupo: 'proyectos', nivel: p.nivel, progreso: p.progreso, titulo: p.titulo.replace(/^Proyecto: (.)/, (_, c) => c.toUpperCase()), texto: p.resumen, tareas: p.fases.reduce((n, f) => n + f.requisitos.length, 0) })),
   { clave: 'lab:subnetting', area: 'redes', grupo: 'numeros', nivel: 'principiante', progreso: 'subnetting', titulo: 'Entrenador de subnetting', texto: 'Red, broadcast, hosts y máscara de direcciones al azar. Completa 10 aciertos seguidos.' },
   { clave: 'lab:binario', area: 'redes', grupo: 'numeros', nivel: 'principiante', progreso: 'binario', titulo: 'Binario y decimal', texto: 'Convierte octetos de binario a decimal y al revés hasta hacerlo de cabeza.' },
   { clave: 'lab:vlsm', area: 'redes', grupo: 'numeros', nivel: 'intermedio', progreso: 'vlsm', titulo: 'Diseño VLSM', texto: 'Reparte un bloque de direcciones entre varias redes de distinto tamaño.' },

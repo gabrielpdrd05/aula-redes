@@ -27,7 +27,7 @@ const ICON = {
   cuenta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
   tema: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>',
 };
-const NAV = [['curso.html', 'Curso', 'curso'], ['practica.html', 'Práctica', 'practica'], ['comandos.html', 'Comandos', 'comandos'], ['examen.html', 'Examen', 'examen'], ia ? ['tutor.html', 'Tutor IA', 'tutor'] : ['tutor.html', 'Buscar', 'buscar']];
+const NAV = [['curso.html', 'Curso', 'curso'], ['practica.html', 'Práctica', 'practica'], ['comandos.html', 'Comandos', 'comandos'], ['examen.html', 'Examen', 'examen'], ['repaso.html', 'Repaso', 'repaso'], ia ? ['tutor.html', 'Tutor IA', 'tutor'] : ['tutor.html', 'Buscar', 'buscar']];
 
 function header(active) {
   const links = NAV.map(([href, label]) => `<a href="${href}"${active === href ? ' aria-current="page"' : ''}>${label}</a>`).join('');
@@ -42,7 +42,7 @@ function header(active) {
 </div></header>`;
 }
 function mobileNav(active) {
-  return `<nav class="mobile-nav" aria-label="Navegación móvil">${[...NAV.filter(([h]) => h !== 'comandos.html'), ['cuenta.html', 'Cuenta', 'cuenta']].map(([href, label, icon]) => `<a href="${href}"${active === href ? ' aria-current="page"' : ''}>${ICON[icon]}<span>${label}</span></a>`).join('')}</nav>`;
+  return `<nav class="mobile-nav" aria-label="Navegación móvil">${[...NAV.filter(([h]) => h !== 'comandos.html' && h !== 'repaso.html'), ['cuenta.html', 'Cuenta', 'cuenta']].map(([href, label, icon]) => `<a href="${href}"${active === href ? ' aria-current="page"' : ''}>${ICON[icon]}<span>${label}</span></a>`).join('')}</nav>`;
 }
 const footer = `<footer class="site-footer"><div class="container">
   <span>Aula de Redes · Curso de redes alineado con el temario oficial del Cisco CCNA 200-301. No es un curso oficial de Cisco.</span>

@@ -91,6 +91,7 @@ const LOADERS = {
   cli: () => import('./labs/cli-ui.js').then(m => m.montarCli),
   sql: () => import('./labs/sql-lab.js').then(m => m.montarSql),
   code: () => import('./codigo/codigo-ui.js').then(m => m.montarCodigo),
+  proyecto: () => import('./proyectos/proyecto-ui.js').then(m => m.montarProyecto),
 };
 
 async function montarEmbed(holder, kind, id, ctx) {

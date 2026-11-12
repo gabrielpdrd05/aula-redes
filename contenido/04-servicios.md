@@ -559,3 +559,56 @@ Antes de actualizar el IOS comprueba con `show flash:` que hay **espacio suficie
 + SCP o SFTP
 = Ambos funcionan sobre SSH y cifran la transferencia.
 :::
+
+=== m4-proyecto-oficina | Proyecto: la red de la oficina central | 60 | 2
+Ha llegado el momento de juntarlo todo. En este proyecto configuras **desde cero** la red de una oficina real con **dos equipos** (un switch y un router), siguiendo el plan de un arquitecto de red, igual que en tu primer trabajo.
+
+## Qué vas a poner en práctica
+
+| Tema | Lecciones donde se explica |
+|---|---|
+| VLAN y puertos de acceso | [VLAN: redes virtuales](leccion.html?id=m2-vlan) |
+| Trunk 802.1Q y VLAN nativa | [Trunks 802.1Q](leccion.html?id=m2-trunk) |
+| Router-on-a-stick | [Enrutamiento entre VLAN](leccion.html?id=m2-intervlan) |
+| Ruta por defecto | [Rutas estáticas IPv4](leccion.html?id=m3-estatica) |
+| DHCP | [DHCP](leccion.html?id=m4-dhcp) |
+| NAT/PAT | [NAT y PAT](leccion.html?id=m4-nat) |
+| SSH y gestión | [Acceso remoto seguro con SSH](leccion.html?id=m4-ssh) |
+
+## Cómo trabajar
+
+1. **Lee el plan de direccionamiento** completo antes de escribir un solo comando. En la vida real, el 80 % de los errores vienen de no haberlo leído bien.
+2. **Avanza por fases.** Cada fase indica en qué equipo se trabaja; cambia de consola con las pestañas SW1 / R1.
+3. **Verifica cada fase** con comandos `show` antes de pasar a la siguiente: `show vlan brief`, `show interfaces trunk`, `show ip interface brief`, `show ip route`, `show ip dhcp binding`, `show ip nat translations`.
+4. **Usa las pruebas de extremo a extremo.** Simulan el tráfico de un PC hasta Internet y te dicen en qué salto se corta y por qué: es exactamente el método de diagnóstico de un técnico.
+5. **Guarda** (`copy running-config startup-config`) en los dos equipos al terminar.
+
+::: nota
+Tu avance se guarda solo en este navegador: puedes cerrar la página y continuar otro día. Al terminar, descarga el **informe**: contiene los requisitos, el resultado de las pruebas y la configuración completa de los equipos. Es una pieza perfecta para tu portafolio.
+:::
+
+::: practica
+Intenta resolver cada fase sin mirar la solución. Las pistas se desbloquean de una en una: úsalas antes que la solución completa.
+:::
+
+[[proyecto:oficina]]
+
+::: quiz
+? En router-on-a-stick, ¿por qué la interfaz física Gi0/0 del router no lleva dirección IP?
++ Porque las IP van en las subinterfaces, una por VLAN
+- Porque un router no admite IP en Gi0/0
+- Porque la IP la pone el switch
+= Cada subinterfaz (Gi0/0.10, Gi0/0.20…) es la puerta de enlace de su VLAN.
+
+? El PC de Ventas recibe IP pero no navega. La ruta por defecto existe. ¿Qué revisarías después?
++ La NAT: inside/outside y que la ACL de NAT permita su red
+- El nombre de la VLAN
+- La velocidad del puerto del PC
+= Sin traducción, la IP privada no puede salir a Internet.
+
+? ¿Por qué se excluyen las direcciones .1 a .10 del DHCP en este plan?
++ Para reservarlas al router, al switch y a equipos con IP fija
+- Porque el DHCP no puede repartirlas
+- Porque son direcciones públicas
+= Así el DHCP nunca entrega la IP de la puerta de enlace ni la de otros equipos fijos.
+:::

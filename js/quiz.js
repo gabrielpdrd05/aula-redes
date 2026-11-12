@@ -36,11 +36,13 @@ export function montarQuiz(contenedor, preguntas, { titulo = 'Comprueba lo que h
     const sinResponder = preguntasDom.filter(div => !div.querySelector('input:checked')).length;
     if (sinResponder) { form.querySelector('.quiz-result').textContent = sinResponder === 1 ? 'Te falta 1 pregunta por responder.' : `Te faltan ${sinResponder} preguntas por responder.`; return; }
     let aciertos = 0;
+    const detalle = [];
     preguntasDom.forEach((div, n) => {
       const q = ps[n];
       const elegidas = new Set([...div.querySelectorAll('input:checked')].map(i => Number(i.value)));
       const ok = q.opciones.every((o, k) => o.correcta === elegidas.has(k));
       if (ok) aciertos++;
+      if (q.id) detalle.push({ id: q.id, ok });
       div.querySelectorAll('.option').forEach((lab, k) => {
         lab.querySelector('input').disabled = true;
         if (q.opciones[k].correcta) lab.classList.add('correct');
@@ -55,7 +57,7 @@ export function montarQuiz(contenedor, preguntas, { titulo = 'Comprueba lo que h
     form.querySelector('.quiz-result').textContent = `Has acertado ${aciertos} de ${total}. ${aprobado ? '¡Aprobado!' : 'Repasa la lección y vuelve a intentarlo (necesitas un 70 %).'}`;
     form.querySelector('button[type=submit]').textContent = 'Repetir con otro orden';
     form.dataset.corregido = '1';
-    alTerminar?.(aciertos, total);
+    alTerminar?.(aciertos, total, detalle);
   });
 
   pintar();

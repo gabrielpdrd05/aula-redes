@@ -11,7 +11,7 @@ let area = pedida || local.get('aula:practica:area', 'redes');
 
 function tarjeta(l) {
   return el('a', { class: 'card lab-card', href: 'laboratorio.html?l=' + l.clave },
-    el('div', { class: 'lab-card-head' }, el('h3', {}, l.titulo), labHecho(l.progreso) ? el('span', { class: 'badge badge-ok' }, '✓ Hecho') : l.tareas ? el('span', { class: 'badge' }, l.tareas + (l.area === 'redes' ? ' tareas' : ' ejercicios')) : null),
+    el('div', { class: 'lab-card-head' }, el('h3', {}, l.titulo), labHecho(l.progreso) ? el('span', { class: 'badge badge-ok' }, '✓ Hecho') : l.tareas ? el('span', { class: 'badge' }, l.tareas + (l.grupo === 'proyectos' ? ' requisitos' : l.area === 'redes' ? ' tareas' : ' ejercicios')) : null),
     l.nivel ? el('span', { class: 'badge level-' + l.nivel }, NIVELES[l.nivel]) : null,
     el('p', { class: 'muted small' }, l.texto));
 }

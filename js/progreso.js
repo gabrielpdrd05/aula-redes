@@ -27,9 +27,12 @@ function mejor(a, b) {
   if (na !== nb) return na > nb ? a : b;
   return (a.t || 0) >= (b.t || 0) ? a : b;
 }
+// En el repaso no gana "el mejor" sino el estado más reciente (un fallo nuevo debe devolver la pregunta a la caja 0).
+const masReciente = (a, b) => (!a ? b : !b ? a : (a.t || 0) >= (b.t || 0) ? a : b);
+const elegir = (k, a, b) => (k.startsWith('repaso:') ? masReciente(a, b) : mejor(a, b));
 function fusionar(x, y) {
   const r = VACIO();
-  for (const k of new Set([...Object.keys(x.items), ...Object.keys(y.items)])) r.items[k] = mejor(x.items[k], y.items[k]);
+  for (const k of new Set([...Object.keys(x.items), ...Object.keys(y.items)])) r.items[k] = elegir(k, x.items[k], y.items[k]);
   const vistos = new Set();
   r.examenes = [...x.examenes, ...y.examenes].filter(e => { const k = e.t + ':' + e.puntos; if (vistos.has(k)) return false; vistos.add(k); return true; }).sort((a, b) => a.t - b.t).slice(-50);
   r.dias = [...new Set([...x.dias, ...y.dias])].sort().slice(-120);
@@ -47,7 +50,7 @@ async function descargar() {
   const r = VACIO();
   for (const f of filas) {
     if (f.item_id === 'actividad') { r.dias = Array.isArray(f.datos?.dias) ? f.datos.dias : []; continue; }
-    r.items[f.item_id] = { tipo: f.tipo, puntos: f.puntos, total: f.total, hecho: f.hecho, t: Date.parse(f.actualizado) || 0 };
+    r.items[f.item_id] = { tipo: f.tipo, puntos: f.puntos, total: f.total, hecho: f.hecho, t: Date.parse(f.actualizado) || 0, ...(f.datos && Object.keys(f.datos).length ? { datos: f.datos } : {}) };
   }
   r.examenes = exams.map(e => ({ t: Date.parse(e.creado), puntos: e.puntos, total: e.total, dominios: e.dominios || {}, segundos: e.segundos, remoto: true }));
   return r;
@@ -56,7 +59,7 @@ async function descargar() {
 async function subirItem(id, it) {
   const sb = supabase();
   if (!sb || !uid) return;
-  const { error } = await sb.from('progreso').upsert({ user_id: uid, item_id: id, tipo: it.tipo, puntos: it.puntos ?? null, total: it.total ?? null, hecho: !!it.hecho, datos: {}, actualizado: new Date(it.t || Date.now()).toISOString() }, { onConflict: 'user_id,item_id' });
+  const { error } = await sb.from('progreso').upsert({ user_id: uid, item_id: id, tipo: it.tipo, puntos: it.puntos ?? null, total: it.total ?? null, hecho: !!it.hecho, datos: it.datos || {}, actualizado: new Date(it.t || Date.now()).toISOString() }, { onConflict: 'user_id,item_id' });
   if (error) console.warn('No se pudo sincronizar el progreso:', error.message);
 }
 async function subirDias() {
@@ -80,7 +83,7 @@ export function cargar() {
           local.del(clave(null));
         }
         // Sube lo que hay en local y no en el servidor (o mejor que lo del servidor).
-        const pendientes = Object.entries(combinado.items).filter(([k, v]) => mejor(remoto.items[k], v) !== remoto.items[k]);
+        const pendientes = Object.entries(combinado.items).filter(([k, v]) => elegir(k, remoto.items[k], v) !== remoto.items[k]);
         estado = combinado;
         local.set(clave(uid), estado);
         await Promise.all(pendientes.map(([k, v]) => subirItem(k, v)));
@@ -152,3 +155,40 @@ export async function borrarTodo() {
 }
 
 export const exportar = () => JSON.parse(JSON.stringify(estado));
+
+// ---------------------------------------------------------------- repaso de errores (repetición espaciada)
+// Cada pregunta fallada entra en el repaso en la caja 0. Cada acierto la sube de caja y alarga el intervalo;
+// un fallo la devuelve a la caja 0. Desde la caja 3 se considera dominada (aunque se sigue repasando de vez en cuando).
+// Se guarda como elemento de progreso 'repaso:<lección>#<n>' (tipo quiz: puntos = caja, total = 5).
+export const DIAS_CAJA = [0, 1, 3, 7, 14, 30];
+export const CAJA_DOMINADA = 3;
+const DIA = 86400000;
+
+export function registrarRespuestas(respuestas, origen = 'quiz', ahora = Date.now()) {
+  let cambios = 0;
+  for (const { id, ok } of respuestas) {
+    if (!/^[a-z]\d-[a-z0-9-]+#\d+$/.test(id || '')) continue;
+    const k = 'repaso:' + id;
+    const prev = estado.items[k];
+    if (ok && !prev) continue;                       // acertada y nunca fallada: nada que repasar
+    const d = prev?.datos || {};
+    const caja = ok ? Math.min((prev.puntos ?? 0) + 1, 5) : 0;
+    const item = { tipo: 'quiz', puntos: caja, total: 5, hecho: caja >= CAJA_DOMINADA, t: ahora,
+      datos: { f: (d.f || 0) + (ok ? 0 : 1), a: (d.a || 0) + (ok ? 1 : 0), p: ahora + DIAS_CAJA[caja] * DIA, o: ok ? (d.o || origen) : origen } };
+    estado.items[k] = item;
+    cambios++;
+    subirItem(k, item);
+  }
+  if (cambios) { anotarDia(); local.set(clave(uid), estado); notificar(); }
+  return cambios;
+}
+
+// Lista del repaso: { id, leccion, caja, fallos, aciertos, proxima, dominada, pendiente }
+export function repaso(ahora = Date.now()) {
+  return Object.entries(estado.items).filter(([k]) => k.startsWith('repaso:')).map(([k, it]) => {
+    const id = k.slice(7);
+    const caja = it.puntos ?? 0;
+    return { id, leccion: id.split('#')[0], caja, fallos: it.datos?.f || 1, aciertos: it.datos?.a || 0, proxima: it.datos?.p ?? 0, origen: it.datos?.o || 'quiz', dominada: caja >= CAJA_DOMINADA, pendiente: (it.datos?.p ?? 0) <= ahora };
+  }).sort((a, b) => a.proxima - b.proxima || a.caja - b.caja);
+}
+
