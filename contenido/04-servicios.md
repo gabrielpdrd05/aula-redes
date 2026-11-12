@@ -9,6 +9,8 @@ descripcion: NAT y PAT, DHCP, DNS, NTP, SNMP, Syslog, QoS, acceso remoto con SSH
 === m4-nat | NAT y PAT | 20 | 2
 Las direcciones privadas (RFC 1918) no se enrutan en internet. **NAT** (Network Address Translation) traduce las direcciones privadas a públicas al salir y deshace la traducción en las respuestas.
 
+[[video:dhcp-nat]]
+
 ## Terminología (se pregunta mucho)
 
 | Término | Qué es | Ejemplo |

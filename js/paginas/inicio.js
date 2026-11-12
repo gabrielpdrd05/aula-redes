@@ -1,5 +1,5 @@
 // Portada: ilustración animada de una red (un paquete viaja de un PC a un servidor) y los dominios del CCNA.
-import { iniciarPagina, el, $, reducedMotion } from '../core.js';
+import { iniciarPagina, el, $, reducedMotion, revelar } from '../core.js';
 import { cargarCurso } from '../curso.js';
 
 iniciarPagina();
@@ -44,3 +44,4 @@ async function dominios() {
 
 heroArt();
 dominios();
+revelar('.section .section-head, .section .card, .section .route-banner');

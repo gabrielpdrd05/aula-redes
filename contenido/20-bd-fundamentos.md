@@ -131,6 +131,8 @@ Las series temporales te interesan especialmente si vienes de redes: herramienta
 === b1-modelo | El modelo relacional: tablas, claves y relaciones | 16 | 1
 El modelo relacional, propuesto por Edgar F. Codd en 1970, sigue siendo la base de casi todas las bases de datos empresariales. Sus piezas son pocas y muy precisas.
 
+[[video:tablas-claves]]
+
 ## Vocabulario
 
 | Término | Qué es | Ejemplo |

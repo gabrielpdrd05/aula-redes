@@ -10,6 +10,8 @@ descripcion: Para qué sirve cada lenguaje y cómo se escribe: Python, JavaScrip
 === p2-panorama | El mapa de los lenguajes: cuál sirve para qué | 16 | 1
 Hay cientos de lenguajes, pero una docena concentra la gran mayoría de los empleos. Rankings como la encuesta anual de Stack Overflow, el índice TIOBE o las estadísticas de GitHub coinciden año tras año en los mismos nombres.
 
+[[video:lenguajes]]
+
 ## Para qué se usa cada uno
 
 | Lenguaje | Dónde brilla | Ejemplos reales |

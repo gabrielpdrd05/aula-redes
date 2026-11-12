@@ -101,6 +101,8 @@ Un router aplica tres criterios **en este orden**, y cada uno responde a una pre
 2. **Distancia administrativa:** cuando varios orígenes (OSPF, estática...) ofrecen **el mismo prefijo**, se instala en la tabla el de menor AD.
 3. **Métrica:** dentro de un mismo protocolo, si hay varios caminos al mismo prefijo, se instala el de **menor métrica**. Si empatan, se instalan todos y se balancea la carga (**ECMP**).
 
+[[video:router-decide]]
+
 ## Ejemplo de longest prefix match
 
 Tabla:

@@ -478,6 +478,8 @@ Verificar la identidad con el procedimiento: devolver la llamada al número regi
 === s1-tickets | Tickets, prioridades, SLA y escalamiento | 18 | 1
 Un **ticket** es el registro de cada incidencia o solicitud. Permite seguirla, medirla y aprender de ella.
 
+[[video:ticket-vida]]
+
 ## Incidencia o solicitud
 
 - **Incidencia**: algo que funcionaba y dejó de funcionar (no imprime, sin conexión).

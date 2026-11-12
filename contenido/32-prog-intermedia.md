@@ -10,6 +10,8 @@ descripcion: Las herramientas y técnicas del día a día de cualquier programad
 === p3-git | Git y GitHub: control de versiones | 18 | 2
 **Git** guarda la historia completa de tu código: qué cambió, cuándo, quién y por qué. Permite volver atrás, trabajar en paralelo y colaborar sin pisarse. Es obligatorio en cualquier empleo de programación (y cada vez más en redes, para guardar configuraciones).
 
+[[video:git-flujo]]
+
 ## Conceptos
 
 | Concepto | Qué es |

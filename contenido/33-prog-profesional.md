@@ -95,6 +95,8 @@ red = {
 === p4-algoritmos | Algoritmos y complejidad: la notación Big O | 18 | 3
 Dos programas pueden dar el mismo resultado y uno tardar un segundo y el otro un día. La **complejidad** mide cómo crece el tiempo (o la memoria) cuando crecen los datos. Se expresa con la notación **Big O**.
 
+[[video:busqueda]]
+
 ## Las complejidades más comunes
 
 | Big O | Nombre | Ejemplo | Con 1.000 datos | Con 1.000.000 |

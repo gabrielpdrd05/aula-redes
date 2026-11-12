@@ -10,6 +10,8 @@ descripcion: JOIN, agregados, funciones, subconsultas y CTE, insertar y modifica
 === b2-join | SQL II: relacionar tablas con JOIN | 18 | 2
 Los datos están repartidos en varias tablas para no repetirlos. **JOIN** las combina usando las claves.
 
+[[video:join]]
+
 ## INNER JOIN
 
 Devuelve solo las filas que tienen pareja en las dos tablas.

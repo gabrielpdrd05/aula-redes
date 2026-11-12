@@ -227,6 +227,8 @@ Cada índice ocupa espacio y **ralentiza** los `INSERT`, `UPDATE` y `DELETE`, po
 === b3-transacciones | Transacciones, aislamiento y bloqueos | 18 | 3
 Ya sabes que una transacción agrupa operaciones que se hacen **todas o ninguna** (ACID). Ahora veamos qué pasa cuando **muchos usuarios** trabajan a la vez sobre los mismos datos.
 
+[[video:transaccion]]
+
 ## Repaso: ACID
 
 | Propiedad | Significa |

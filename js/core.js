@@ -27,7 +27,17 @@ export function toast(msg, ms = 3600) {
   t = el('div', { id: 'toast', class: 'toast', role: 'status', 'aria-live': 'polite' }, msg);
   document.body.append(t);
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.remove(), ms);
+  toastTimer = setTimeout(() => { t.classList.add('saliendo'); setTimeout(() => t.remove(), 220); }, ms);
+}
+
+// Revela con un fundido los bloques indicados cuando entran en pantalla por primera vez (portada, rutas, videoteca).
+// Sin IntersectionObserver o con «reducir movimiento», todo se muestra directamente.
+export function revelar(selector, raiz = document) {
+  const items = $$(selector, raiz);
+  if (!items.length || !('IntersectionObserver' in window) || reducedMotion()) return;
+  document.documentElement.classList.add('revelar-js');
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px' });
+  items.forEach((x, i) => { if (!x.classList.contains('visible')) { x.classList.add('rv'); x.style.setProperty('--i', String(i % 4)); io.observe(x); } });
 }
 
 export const plural = (n, uno, varios) => n + ' ' + (n === 1 ? uno : varios);

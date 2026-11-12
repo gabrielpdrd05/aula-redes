@@ -47,6 +47,7 @@ KNOWN = {
     "proyecto": {"oficina"},
     "caso": {"login", "impresora-etiquetas", "sucursal", "nuevo-empleado", "lento"},
     "turno": {"soporte"},
+    "video": {"viaje-mensaje", "vlan-switch", "router-decide", "dhcp-nat", "phishing", "automatizar", "tablas-claves", "join", "transaccion", "bucle", "lenguajes", "git-flujo", "busqueda", "ticket-vida"},
     "sql": {"select", "join", "agregacion", "funciones", "subconsultas", "modificar", "ddl", "ventanas", "inventario"},
     "code": {"python-basico", "python-condicionales", "python-bucles", "python-colecciones", "python-redes", "python-poo",
              "js-basico", "js-arrays", "js-avanzado", "python-libre", "js-libre"},

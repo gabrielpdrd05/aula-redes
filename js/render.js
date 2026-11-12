@@ -96,6 +96,7 @@ const LOADERS = {
   proyecto: () => import('./proyectos/proyecto-ui.js').then(m => m.montarProyecto),
   caso: () => import('./casos/caso-ui.js').then(m => m.montarCaso),
   turno: () => import('./casos/caso-ui.js').then(m => m.montarTurno),
+  video: () => import('./video/reproductor.js').then(m => m.montarVideo),
 };
 
 async function montarEmbed(holder, kind, id, ctx) {

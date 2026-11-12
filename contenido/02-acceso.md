@@ -227,6 +227,8 @@ Configura tú mismo el router de esta oficina en el laboratorio de abajo. Despu�
 === m2-vlan | VLAN: redes virtuales | 18 | 1
 Una **VLAN** divide un switch físico en varios switches lógicos. Cada VLAN es un **dominio de broadcast** distinto y una **subred IP** distinta.
 
+[[video:vlan-switch]]
+
 ## Por qué usar VLAN
 
 - **Seguridad:** el tráfico de Contabilidad no se mezcla con el de Invitados.

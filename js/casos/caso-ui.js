@@ -1,6 +1,15 @@
 // Interfaz de los casos de soporte: ticket y prioridad → diagnóstico → solución → documentación → comunicación → resultado.
 // También monta el «turno de mesa de ayuda» (proyecto de portafolio): clasificar cinco tickets y resolverlos.
-import { el, toast, local, setMeter } from '../core.js';
+import { el, toast, local, setMeter, reducedMotion } from '../core.js';
+
+// La nota final sube de 0 al resultado (se ve una vez por intento: refuerza el momento del resultado).
+function contar(nodo, fin) {
+  if (reducedMotion()) { nodo.textContent = String(fin); return nodo; }
+  const t0 = performance.now(), dur = 700;
+  const paso = t => { const k = Math.min(1, (t - t0) / dur); nodo.textContent = String(Math.round(fin * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+  return nodo;
+}
 import { guardarLab, labHecho, cargar } from '../progreso.js';
 import { CASOS, TURNO, DIMENSIONES, IMPACTO, URGENCIA, SLA, prioridad, evaluarCaso, respuestaModelo, informeTurno, MIN_NOTA } from './casos.js';
 
@@ -137,7 +146,7 @@ export async function montarCaso(holder, id, opts = {}) {
     const modelo = el('details', { class: 'rubric-detail' }, el('summary', {}, 'Nota de ticket de referencia'), el('div', { class: 'ticket-note' }, c.modelo.map(l => el('p', {}, l))));
     const otra = boton('Intentar de nuevo', () => { Object.assign(r, { impacto: opts.prioridad?.impacto || '', urgencia: opts.prioridad?.urgencia || '', acciones: [], causa: -1, solucion: [], notas: {}, mensajes: c.comunicacion.map(() => -1) }); ir(0); }, 'btn btn-ghost');
     return [el('div', { class: 'rubric' },
-      el('div', { class: 'rubric-total' }, el('span', { class: 'rubric-score' }, String(ev.total)), el('span', { class: 'small muted' }, '/100'),
+      el('div', { class: 'rubric-total' }, contar(el('span', { class: 'rubric-score' }, '0'), ev.total), el('span', { class: 'small muted' }, '/100'),
         el('span', { class: 'badge ' + (ev.aprobado ? 'badge-ok' : 'badge-warn') }, ev.aprobado ? '✓ Caso resuelto' : ev.riesgos ? 'Acción de riesgo: repítelo' : 'A mejorar (mínimo 70 y 50 en cada parte)')),
       el('div', { class: 'rubric-rows' }, filas)),
       el('p', { class: 'alert alert-info' }, el('span', {}, el('strong', {}, 'Lo que te llevas: '), c.aprendizaje)),

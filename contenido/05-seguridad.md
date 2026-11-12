@@ -7,6 +7,8 @@ peso: 15
 descripcion: Amenazas y mitigación, contraseñas y MFA, AAA, listas de control de acceso, seguridad de capa 2, VPN IPsec y seguridad inalámbrica.
 ---
 === m5-conceptos | Amenazas, vulnerabilidades y ataques | 18 | 1
+[[video:phishing]]
+
 ## Vocabulario básico
 
 - **Vulnerabilidad:** una debilidad (un software sin parchear, una contraseña por defecto).

@@ -265,6 +265,8 @@ const texto = n % 2 === 0 ? "par" : "impar";
 === p1-bucles | Repetir: bucles for y while | 14 | 1
 Los ordenadores son buenos haciendo lo mismo miles de veces sin cansarse. Para repetir se usan **bucles**.
 
+[[video:bucle]]
+
 ## for: recorrer una colección o un rango
 
 ```python

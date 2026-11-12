@@ -9,6 +9,8 @@ descripcion: Qué es una red, qué hace cada equipo, los modelos OSI y TCP/IP, c
 === m1-redes | ¿Qué es una red? | 12 | 1
 Una **red** es un conjunto de dispositivos conectados que comparten información y recursos. Cuando abres una página web, tu móvil manda datos a través de varias redes (la wifi de tu casa, la red de tu proveedor de internet, la red troncal de internet y la red del servidor) y la respuesta vuelve por el mismo tipo de camino en milisegundos.
 
+[[video:viaje-mensaje]]
+
 ## Los elementos de cualquier red
 
 - **Dispositivos finales (endpoints):** los que originan o reciben los datos. PC, portátiles, móviles, impresoras, cámaras IP, servidores.

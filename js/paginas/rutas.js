@@ -1,5 +1,5 @@
 // Rutas de empleo: progreso por ruta (lecciones de sus módulos, prácticas y proyecto final) y plan de módulos.
-import { iniciarPagina, el, $, setMeter, plural, local } from '../core.js';
+import { iniciarPagina, el, $, setMeter, plural, local, revelar } from '../core.js';
 import { cargarCurso } from '../curso.js';
 import { CATALOGO } from '../labs/catalogo.js';
 import { cargar, alCambiar, leccionHecha, labHecho } from '../progreso.js';
@@ -52,4 +52,5 @@ function pintar() {
   }));
 }
 pintar();
+revelar('.route-card, .modules-plan .card');
 alCambiar(pintar);

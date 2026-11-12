@@ -9,6 +9,8 @@ descripcion: Redes controladas por software, SDN, IA en las operaciones de red, 
 === m6-automatizacion | Por qué automatizar la red | 12 | 2
 Configurar 200 switches uno a uno por CLI es lento y propenso a errores: basta un comando mal escrito en un equipo para causar una caída. La **automatización** aplica cambios a muchos equipos de forma rápida, repetible y verificable.
 
+[[video:automatizar]]
+
 ## Ventajas
 
 - **Menos errores humanos:** la misma plantilla se aplica igual en todos los equipos.
