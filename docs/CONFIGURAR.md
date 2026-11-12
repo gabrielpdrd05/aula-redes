@@ -16,8 +16,8 @@ En **Authentication**:
 - **Sign In / Providers → Email**: activado, con **Confirm email** activado.
 - **Passwords**: longitud mínima **12**, exigir minúsculas, mayúsculas y números, y activa **Prevent use of leaked passwords** (si tu plan lo incluye).
 - **URL Configuration**:
-  - *Site URL*: `https://gabrielpdrd05.github.io/aula-redes/`
-  - *Redirect URLs*: `https://gabrielpdrd05.github.io/aula-redes/cuenta.html*`
+  - *Site URL*: `https://loopback-academia.github.io/`
+  - *Redirect URLs*: `https://loopback-academia.github.io/cuenta.html*`
 - **Multi-Factor**: deja activado **TOTP** (app de autenticación).
 - **Rate Limits**: los valores por defecto están bien; bájalos si ves abuso.
 - Recomendado para producción: **SMTP propio** (Emails → SMTP Settings); el correo de prueba de Supabase tiene un límite muy bajo de envíos por hora.
@@ -44,7 +44,7 @@ Con la [CLI de Supabase](https://supabase.com/docs/guides/cli):
 supabase login
 supabase link --project-ref TU-PROYECTO
 supabase secrets set ANTHROPIC_API_KEY=…            # tu clave de Anthropic
-supabase secrets set ALLOWED_ORIGINS=https://gabrielpdrd05.github.io
+supabase secrets set ALLOWED_ORIGINS=https://loopback-academia.github.io
 supabase secrets set TUTOR_LIMITE_DIARIO=40          # opcional: mensajes por alumno y día
 supabase functions deploy tutor
 ```
