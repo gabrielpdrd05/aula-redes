@@ -1,10 +1,14 @@
 <!--{"title": "Tu curso · Aula de Redes", "description": "Panel del curso: progreso, módulos y lecciones del temario CCNA y de bases de datos.", "script": "panel.js"}-->
 <section class="page"><div class="container">
-  <div class="page-head"><h1 id="saludo">Tu curso</h1><p id="sub">Avanza lección a lección; cada una termina con un cuestionario.</p></div>
+  <div class="page-head"><h1 id="saludo">Tu curso</h1><p id="sub">Sigue la ruta por niveles: de principiante a nivel de empleo. Cada lección termina con un cuestionario y cada nivel tiene sus prácticas.</p></div>
   <div id="avisoCuenta"></div>
   <div class="dashboard">
     <div>
       <article class="card continue-card mb" id="continuar" hidden></article>
+      <div class="tabs view-tabs" role="tablist" aria-label="Cómo ver el temario" id="vistas">
+        <button type="button" role="tab" data-vista="niveles" aria-selected="true">Ruta por niveles</button>
+        <button type="button" role="tab" data-vista="modulos" aria-selected="false">Por módulos del CCNA</button>
+      </div>
       <div id="modulos" aria-live="polite"><p class="muted">Cargando el temario…</p></div>
     </div>
     <aside class="stack">
@@ -23,6 +27,7 @@
         <h2 class="small muted">PRÁCTICA RÁPIDA</h2>
         <p><a href="laboratorio.html?l=lab:subnetting">Entrenador de subnetting</a></p>
         <p><a href="practica.html">Todos los laboratorios</a></p>
+        <p><a href="comandos.html">Guía de comandos Cisco</a></p>
         <p><a href="examen.html">Simulacro de examen</a></p>
         <p><a href="tutor.html"><!--ia-->Preguntar al tutor<!--/ia--><!--sin-ia-->Buscar en el curso<!--/sin-ia--></a></p>
       </article>

@@ -55,7 +55,7 @@ if (!r) {
     el('header', { class: 'lesson-head' },
       el('div', { class: 'crumbs' }, `Módulo ${numeroModulo(leccion.modulo)} · ${leccion.modulo.titulo}`),
       el('h1', {}, leccion.titulo),
-      el('div', { class: 'meta' }, el('span', { class: 'badge' }, leccion.minutos + ' min'), leccion.modulo.peso ? el('span', { class: 'badge badge-accent' }, 'CCNA ' + leccion.modulo.dominio.split(' ')[0]) : null, hecha() ? el('span', { class: 'badge badge-ok' }, 'Completada') : null)),
+      el('div', { class: 'meta' }, el('span', { class: 'badge level-' + ['principiante', 'intermedio', 'avanzado'][leccion.nivel - 1] }, 'Nivel ' + leccion.nivel + ' · ' + ['Principiante', 'Intermedio', 'Avanzado'][leccion.nivel - 1]), el('span', { class: 'badge' }, leccion.minutos + ' min'), leccion.modulo.peso ? el('span', { class: 'badge badge-accent' }, 'CCNA ' + leccion.modulo.dominio.split(' ')[0]) : null, hecha() ? el('span', { class: 'badge badge-ok' }, 'Completada') : null)),
     prose, quizBox,
     el('nav', { class: 'lesson-actions', 'aria-label': 'Lecciones' },
       anterior ? el('a', { class: 'btn btn-quiet', href: 'leccion.html?id=' + anterior.id }, '‹ ' + anterior.titulo) : el('span'),

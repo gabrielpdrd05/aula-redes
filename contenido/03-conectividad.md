@@ -5,7 +5,7 @@ dominio: 3.0 IP Connectivity
 peso: 25
 descripcion: La tabla de enrutamiento, cómo decide un router, rutas estáticas IPv4 e IPv6, OSPFv2 y protocolos de redundancia de gateway (FHRP).
 ---
-=== m3-tabla | La tabla de enrutamiento | 16
+=== m3-tabla | La tabla de enrutamiento | 16 | 2
 El router decide el camino de cada paquete consultando su **tabla de enrutamiento**. Saber leerla es imprescindible para el examen y para el trabajo.
 
 ```ios
@@ -93,7 +93,7 @@ Cuando dos fuentes ofrecen el **mismo prefijo**, gana la de **menor AD**:
 = 0.0.0.0/0 coincide con cualquier destino y se usa cuando no hay una ruta más específica.
 :::
 
-=== m3-decision | Cómo elige un router el camino | 14
+=== m3-decision | Cómo elige un router el camino | 14 | 2
 Un router aplica tres criterios **en este orden**, y cada uno responde a una pregunta distinta:
 
 1. **Coincidencia más larga (longest prefix match):** de todas las rutas que contienen el destino, gana la **más específica** (prefijo más largo). Esto se decide **siempre primero**, al reenviar cada paquete.
@@ -154,7 +154,7 @@ La pregunta trampa típica: una ruta OSPF `/24` y una estática `/16` que contie
 = 10.20.30.0/25 cubre de .0 a .127; .40 está dentro y es la más específica.
 :::
 
-=== m3-estatica | Rutas estáticas IPv4 | 18
+=== m3-estatica | Rutas estáticas IPv4 | 18 | 2
 Una **ruta estática** la escribe el administrador a mano. No consume CPU ni ancho de banda, pero no se adapta sola si cambia la red. Se usan en redes pequeñas, en redes *stub* (con una única salida) y para la ruta por defecto.
 
 ## Sintaxis
@@ -218,7 +218,7 @@ Recuerda que el tráfico es de **ida y vuelta**: si R1 tiene ruta a la LAN de R2
 = El ping es de ida y vuelta: R2 también necesita saber cómo llegar a la red de origen.
 :::
 
-=== m3-estatica6 | Rutas estáticas IPv6 | 12
+=== m3-estatica6 | Rutas estáticas IPv6 | 12 | 3
 Las rutas estáticas IPv6 funcionan igual que las de IPv4. Antes que nada, el router debe tener activado el enrutamiento IPv6 con `ipv6 unicast-routing`.
 
 ```ios
@@ -261,7 +261,7 @@ Si el siguiente salto es una dirección **link-local** (FE80::), es **obligatori
 = show ipv6 route static filtra la tabla de enrutamiento IPv6.
 :::
 
-=== m3-ospf1 | OSPF: conceptos | 18
+=== m3-ospf1 | OSPF: conceptos | 18 | 3
 **OSPF** (Open Shortest Path First) es el protocolo de enrutamiento dinámico más usado en las redes empresariales. Es abierto, **de estado de enlace** y converge rápido.
 
 ## Estado de enlace frente a vector distancia
@@ -352,7 +352,7 @@ OSPF va directamente sobre IP (**protocolo 89**) y usa las direcciones multicast
 = LSR (Link-State Request) pide los LSA que faltan; llegan dentro de un LSU.
 :::
 
-=== m3-ospf2 | OSPF: vecinos, DR/BDR y configuración | 22
+=== m3-ospf2 | OSPF: vecinos, DR/BDR y configuración | 22 | 3
 ## Requisitos para ser vecinos
 
 Dos routers forman adyacencia OSPF solo si coinciden en:
@@ -464,7 +464,7 @@ R1# show ip route ospf
 = El ID de proceso solo identifica la instancia dentro del propio router.
 :::
 
-=== m3-fhrp | FHRP: redundancia de la puerta de enlace | 14
+=== m3-fhrp | FHRP: redundancia de la puerta de enlace | 14 | 3
 Los equipos tienen configurada **una sola puerta de enlace**. Si ese router cae, se quedan sin salida aunque haya otro router disponible. Los protocolos **FHRP** (*First Hop Redundancy Protocol*) crean una **IP virtual y una MAC virtual** compartidas por varios routers: los PC usan la IP virtual como gateway y, si el router activo falla, otro asume la IP virtual sin que los PC noten nada.
 
 ## Los tres protocolos
@@ -528,7 +528,7 @@ Los PC usan **192.168.10.1** (la IP virtual) como gateway.
 = Sin preempt, el Active actual conserva el rol aunque llegue un router con más prioridad.
 :::
 
-=== m3-diagnostico | Resolución de problemas de conectividad | 14
+=== m3-diagnostico | Resolución de problemas de conectividad | 14 | 2
 Un método ordenado ahorra horas. Cisco recomienda trabajar **por capas**, de abajo arriba o "divide y vencerás" desde la capa 3.
 
 ## Comandos esenciales
@@ -593,4 +593,73 @@ Un método ordenado ahorra horas. Cisco recomienda trabajar **por capas**, de ab
 - show running-config
 - show version
 = Es el primer comando de casi cualquier diagnóstico.
+:::
+
+=== m3-averias | Práctica: averías de IP y enrutamiento | 25 | 2
+Ya conoces el método por capas. Ahora toca aplicarlo a los problemas de **capa 3**, los más frecuentes cuando "no hay Internet" o "no llego al servidor".
+
+## Las preguntas, en orden
+
+1. **¿Tengo IP correcta?** `show ip interface brief`: interfaz `up/up`, IP y máscara correctas. Una errata (`10.0.21.1` en vez de `10.0.12.1`) rompe todo.
+2. **¿Llego a mi vecino directo?** `ping` al otro extremo del enlace o a la puerta de enlace.
+3. **¿Sé llegar al destino?** `show ip route`: ¿hay ruta? ¿hay `Gateway of last resort`?
+4. **¿Sabe volver la respuesta?** El otro lado también necesita ruta de vuelta.
+5. **¿Algo lo filtra?** `show access-lists`: los contadores de *matches* dicen qué regla está actuando.
+
+## Pistas que da la tabla de rutas
+
+- Una ruta estática **no aparece** en la tabla si su siguiente salto no es alcanzable por una red conectada. Si configuraste `ip route 0.0.0.0 0.0.0.0 10.0.12.6` y no la ves, comprueba que 10.0.12.6 está en una red tuya.
+- `Gateway of last resort is not set` = no hay ruta por defecto activa.
+- Para cambiar una ruta, primero se **borra** la mala: `no ip route ...`.
+
+## Pistas que da el ping
+
+| Resultado | Lo que suele significar |
+|---|---|
+| `!!!!!` | Llega y vuelve |
+| `.....` | Sin respuesta: falta ruta (ida o vuelta) o el destino no existe |
+| `U.U.U` | Un router devolvió "destino inalcanzable", a menudo por una ACL |
+| `.!!!!` | El primero se pierde mientras se resuelve ARP: normal |
+
+## La gestión del switch
+
+Un switch de capa 2 también tiene "problemas de IP", pero solo en su **SVI**:
+- La SVI debe estar `up`: necesita que la VLAN exista y que haya algún puerto activo en esa VLAN o un trunk.
+- La IP de la SVI debe estar en la misma red que su puerta de enlace.
+- `ip default-gateway` debe apuntar a un router real; si no, el switch responde solo a su propia red.
+
+::: practica
+Arregla las tres averías. Usa primero los comandos de diagnóstico: las tareas te los piden a propósito.
+:::
+
+[[cli:averia-gestion]]
+
+[[cli:averia-ruta]]
+
+[[cli:averia-ospf]]
+
+::: quiz
+? Configuras una ruta por defecto pero no aparece en show ip route. ¿Causa más probable?
++ Su siguiente salto no está en ninguna red conectada activa
+- Falta ip routing en el router
+- La ruta por defecto nunca se muestra
+= Una ruta estática solo se instala si su siguiente salto es alcanzable.
+
+? ¿Qué indica "Gateway of last resort is not set"?
+- Que el router no tiene interfaces
++ Que no hay ruta por defecto activa
+- Que OSPF está apagado
+= Sin ruta por defecto, el router descarta lo que no conoce.
+
+? Un switch no responde desde otra red, pero sí desde la suya. ¿Qué revisas?
++ ip default-gateway
+- La VLAN nativa
+- El dúplex
+= El switch necesita su puerta de enlace para responder a redes remotas.
+
+? Dos routers no forman vecindad OSPF. ¿Cuál NO es una causa posible?
+- Áreas distintas en el enlace
+- Interfaz pasiva en uno de los lados
++ Distinto hostname en cada router
+= El hostname no influye. Sí influyen área, subred, interfaces pasivas, temporizadores y autenticación.
 :::

@@ -1,10 +1,21 @@
-<!--{"title": "Práctica · Aula de Redes", "description": "Laboratorios de subnetting, binario, VLSM, consola Cisco IOS y SQL con corrección automática.", "script": "practica.js"}-->
+<!--{"title": "Práctica · Aula de Redes", "description": "Laboratorios de consola Cisco (router, switch, VLAN, trunk, SSH, OSPF, DHCP, NAT, ACL), averías para aprender troubleshooting, subnetting y SQL, con corrección automática.", "script": "practica.js"}-->
 <section class="page"><div class="container">
-  <div class="page-head"><h1>Práctica</h1><p>Laboratorios con corrección automática. Los que completes quedan marcados en tu progreso.</p></div>
+  <div class="page-head"><h1>Práctica</h1><p>Laboratorios con corrección automática, ordenados por nivel. Los que completes quedan marcados en tu progreso. Empieza por el nivel 1 y sube cuando los tengas todos.</p></div>
+  <p class="alert alert-info mb"><span>¿No recuerdas un comando? Consulta la <a href="comandos.html">guía de comandos Cisco IOS</a>: qué hace cada uno, en qué modo va y un ejemplo.</span></p>
+  <div class="tabs level-filter" role="group" aria-label="Filtrar por nivel" id="filtroNivel">
+    <button type="button" data-nivel="" aria-pressed="true">Todos</button>
+    <button type="button" data-nivel="principiante" aria-pressed="false">Nivel 1</button>
+    <button type="button" data-nivel="intermedio" aria-pressed="false">Nivel 2</button>
+    <button type="button" data-nivel="avanzado" aria-pressed="false">Nivel 3</button>
+  </div>
+  <h2>Consola Cisco: configurar paso a paso</h2>
+  <p class="muted">Router, switch, VLAN, trunks, SSH, rutas, OSPF, DHCP, NAT y ACL con comandos reales de IOS.</p>
+  <div class="grid-3" id="labsCli"></div>
+  <h2>Resolución de problemas (averías)</h2>
+  <p class="muted">La red está rota a propósito. Diagnostica con comandos <code>show</code>, encuentra la causa, arréglala y verifica: es lo que harás cada día en un trabajo de redes.</p>
+  <div class="grid-3" id="labsAverias"></div>
   <h2>Números y direccionamiento</h2>
   <div class="grid-3" id="labsNumeros"></div>
-  <h2>Consola Cisco IOS</h2>
-  <div class="grid-3" id="labsCli"></div>
   <h2>Bases de datos (SQL)</h2>
   <div class="grid-3" id="labsSql"></div>
 </div></section>

@@ -1,0 +1,19 @@
+<!--{"title": "Guía de comandos Cisco IOS · Aula de Redes", "description": "Los comandos de Cisco IOS para routers y switches explicados por niveles: qué hace cada uno, en qué modo se escribe, un ejemplo y dónde practicarlo.", "script": "comandos.js"}-->
+<section class="page"><div class="container">
+  <div class="page-head"><h1>Guía de comandos Cisco IOS</h1><p>Los comandos que usarás en routers y switches, ordenados por tema y con su nivel. Cada uno explica qué hace, en qué modo se escribe, un ejemplo real y el laboratorio donde practicarlo.</p></div>
+  <div class="cmd-tools">
+    <label class="sr-only" for="buscarCmd">Buscar un comando</label>
+    <input type="search" id="buscarCmd" placeholder="Busca: trunk, ssh, ruta, vlan, nat…" autocomplete="off">
+    <div class="tabs level-filter" role="group" aria-label="Filtrar por nivel" id="filtroNivel">
+      <button type="button" data-nivel="0" aria-pressed="true">Todos</button>
+      <button type="button" data-nivel="1" aria-pressed="false">Nivel 1</button>
+      <button type="button" data-nivel="2" aria-pressed="false">Nivel 2</button>
+      <button type="button" data-nivel="3" aria-pressed="false">Nivel 3</button>
+    </div>
+    <span class="small muted" id="contador"></span>
+  </div>
+  <div class="cmd-layout">
+    <nav class="cmd-index" aria-label="Temas"><h2>Temas</h2><ul id="indiceCat"></ul></nav>
+    <div id="comandos" aria-live="polite"></div>
+  </div>
+</div></section>

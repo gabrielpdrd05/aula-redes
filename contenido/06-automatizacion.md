@@ -5,7 +5,7 @@ dominio: 6.0 Automation and Programmability
 peso: 10
 descripcion: Redes controladas por software, SDN, IA en las operaciones de red, APIs REST, JSON y herramientas de automatización como Ansible y Terraform.
 ---
-=== m6-automatizacion | Por qué automatizar la red | 12
+=== m6-automatizacion | Por qué automatizar la red | 12 | 2
 Configurar 200 switches uno a uno por CLI es lento y propenso a errores: basta un comando mal escrito en un equipo para causar una caída. La **automatización** aplica cambios a muchos equipos de forma rápida, repetible y verificable.
 
 ## Ventajas
@@ -39,7 +39,7 @@ Configurar 200 switches uno a uno por CLI es lento y propenso a errores: basta u
 = Detectar el drift es una de las funciones de las herramientas de gestión de configuración.
 :::
 
-=== m6-sdn | SDN y redes basadas en controlador | 18
+=== m6-sdn | SDN y redes basadas en controlador | 18 | 3
 ## Los tres planos
 
 - **Plano de datos (data plane):** reenvía los paquetes y tramas. Es el trabajo de cada interfaz: buscar en la tabla, encapsular, filtrar con ACL, aplicar NAT.
@@ -104,7 +104,7 @@ En una red tradicional cada equipo tiene los tres. En **SDN** (*Software-Defined
 = Las aplicaciones y los scripts usan la API REST northbound del controlador.
 :::
 
-=== m6-ia | Inteligencia artificial en las operaciones de red | 12
+=== m6-ia | Inteligencia artificial en las operaciones de red | 12 | 2
 La versión actual del CCNA incluye el uso de la IA en la gestión de redes (AIOps).
 
 ## IA predictiva y generativa
@@ -138,7 +138,7 @@ La IA generativa puede **equivocarse con seguridad** ("alucinar"): una configura
 = Los datos etiquetados son la característica del aprendizaje supervisado.
 :::
 
-=== m6-rest | APIs REST | 16
+=== m6-rest | APIs REST | 16 | 3
 Una **API** (interfaz de programación de aplicaciones) permite que un programa hable con otro. Las **APIs REST** usan **HTTP** y son las más extendidas para automatizar redes.
 
 ## Características de REST
@@ -224,7 +224,7 @@ for equipo in respuesta.json()["response"]:
 = 2xx éxito, 3xx redirección, 4xx error del cliente, 5xx error del servidor.
 :::
 
-=== m6-json | JSON y otros formatos de datos | 14
+=== m6-json | JSON y otros formatos de datos | 14 | 2
 Las APIs intercambian datos estructurados. El formato más usado es **JSON** (JavaScript Object Notation).
 
 ## Reglas de JSON
@@ -288,7 +288,7 @@ vlans:
 = Las cadenas deben ir entre comillas dobles.
 :::
 
-=== m6-herramientas | Ansible, Terraform, Puppet y Chef | 16
+=== m6-herramientas | Ansible, Terraform, Puppet y Chef | 16 | 3
 Las herramientas de **gestión de configuración** guardan cómo debe estar cada equipo y se encargan de llevarlo a ese estado.
 
 | Herramienta | Agente en el equipo | Lenguaje / formato | Modelo |

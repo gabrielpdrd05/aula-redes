@@ -8,12 +8,13 @@ Curso interactivo de **redes** (temario completo del **Cisco CCNA 200-301**) y *
 
 | | |
 | --- | --- |
-| **72 lecciones** en 9 módulos | Los 6 dominios del CCNA con su peso real, más bases de datos/SQL y preparación para el empleo |
+| **76 lecciones** en 9 módulos y 3 niveles | Ruta por niveles (principiante → intermedio → avanzado) o por los 6 dominios del CCNA, más bases de datos/SQL y preparación para el empleo |
 | **12 animaciones** paso a paso | Encapsulación, switch, ARP, TCP, DHCP, DNS, VLAN, STP, enrutamiento, NAT, ACL, OSPF |
-| **Simulador de Cisco IOS** | 8 laboratorios guiados (configuración inicial, VLAN, trunk, rutas estáticas, OSPF, ACL, SSH, port security) que se corrigen sobre el estado del equipo |
+| **Simulador de Cisco IOS** | 12 laboratorios guiados (router, switch, VLAN, trunk, router-on-a-stick, rutas estáticas, OSPF, DHCP, NAT, ACL, SSH, port security) y 8 de averías (puerto, trunk, dúplex, gestión, rutas, OSPF, SSH, ACL). Se corrigen sobre el estado del equipo; Tab autocompleta y hay pistas |
+| **Guía de comandos** | 82 comandos de IOS por tema y nivel: qué hacen, en qué modo, un ejemplo y el laboratorio donde practicarlos |
 | **Entrenadores** | Subnetting, binario y VLSM con ejercicios infinitos y explicación |
 | **Laboratorio SQL** | SQLite en el navegador (WebAssembly) con el inventario de red de una empresa |
-| **297 preguntas** | Cuestionario en cada lección y simulacro de examen ponderado por dominio, con cronómetro |
+| **313 preguntas** | Cuestionario en cada lección y simulacro de examen ponderado por dominio, con cronómetro |
 | **Buscador del curso** | Desde cualquier página, encuentra las lecciones y el fragmento que responden a una duda |
 | **Tutor con IA (Claude), opcional** | Desactivado por defecto (la API de Anthropic se paga por uso). Se activa con `"tutorIA": true` en `config.json`; ver la guía |
 | **Cuentas** | Registro con confirmación por correo, verificación en dos pasos, progreso sincronizado |

@@ -5,7 +5,7 @@ dominio: 2.0 Network Access
 peso: 20
 descripcion: Cisco IOS, VLAN, trunks, enrutamiento entre VLAN, CDP/LLDP, EtherChannel, Spanning Tree y redes inalámbricas con controlador.
 ---
-=== m2-ios | Primeros pasos con Cisco IOS | 18
+=== m2-ios | Primeros pasos con Cisco IOS | 18 | 1
 **IOS** es el sistema operativo de los routers y switches Cisco. Se maneja por línea de comandos (CLI) y en el examen tendrás que leer y escribir configuraciones.
 
 ## Los modos de la CLI
@@ -90,7 +90,140 @@ Guarda siempre con `copy running-config startup-config` (o `write memory`). `sho
 = enable secret guarda un hash (tipo 5, 8 o 9). service password-encryption solo ofusca con el débil tipo 7.
 :::
 
-=== m2-vlan | VLAN: redes virtuales | 18
+=== m2-primera-red | Tu primera red completa, paso a paso | 20 | 1
+Antes de entrar en cada tecnología por separado, veamos **cómo encaja todo** en la red de una oficina pequeña real: 12 PC, una impresora, un switch, un router y salida a Internet. Esta lección es el mapa; en las siguientes profundizas en cada pieza.
+
+## 1. El plan: dibuja antes de configurar
+
+Ningún técnico toca un equipo sin un plan. Para esta oficina:
+
+| Elemento | Decisión |
+|---|---|
+| Red de la oficina | `192.168.1.0/24` (254 direcciones, de sobra) |
+| Puerta de enlace (router) | `192.168.1.1` |
+| Equipos fijos (impresora, switch) | `192.168.1.2` a `192.168.1.10`, puestas a mano |
+| PC | `192.168.1.11` en adelante, por **DHCP** |
+| Enlace con el proveedor | `203.0.113.0/30`: el router es `.2`, el proveedor `.1` |
+
+::: nota
+Una **/30** deja solo 2 direcciones útiles: perfecta para un enlace entre dos routers. Lo verás a fondo en Subnetting.
+:::
+
+## 2. El cableado
+
+- Cada PC va a un **puerto de acceso** del switch con un cable de par trenzado (Cat 6, conector RJ45).
+- El switch va al router por un puerto **Gigabit** (en una oficina con VLAN, este enlace será un **trunk**).
+- El router va al equipo del proveedor (ONT, módem o router del ISP).
+
+El **switch** reparte las tramas dentro de la oficina mirando las **MAC**. El **router** saca hacia Internet todo lo que no es de la oficina mirando las **IP**.
+
+## 3. El switch: lo mínimo para que sea seguro y gestionable
+
+Un switch funciona "de fábrica" (todos los puertos en la VLAN 1), pero en una empresa nunca se deja así:
+
+```ios
+Switch> enable
+Switch# configure terminal
+Switch(config)# hostname SW-OFICINA
+SW-OFICINA(config)# enable secret Cl4ve-Priv!
+SW-OFICINA(config)# interface vlan 1
+SW-OFICINA(config-if)# ip address 192.168.1.2 255.255.255.0
+SW-OFICINA(config-if)# no shutdown
+SW-OFICINA(config-if)# exit
+SW-OFICINA(config)# ip default-gateway 192.168.1.1
+SW-OFICINA(config)# end
+SW-OFICINA# copy running-config startup-config
+```
+
+- La **SVI** (`interface vlan 1`) es la IP del switch para administrarlo; el switch no la necesita para conmutar.
+- `ip default-gateway` permite administrarlo desde otras redes.
+
+## 4. El router: la puerta de salida
+
+```ios
+Router(config)# hostname R1
+R1(config)# interface g0/0
+R1(config-if)# description LAN oficina
+R1(config-if)# ip address 192.168.1.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)# interface g0/1
+R1(config-if)# ip address 203.0.113.2 255.255.255.252
+R1(config-if)# no shutdown
+R1(config-if)# exit
+R1(config)# ip route 0.0.0.0 0.0.0.0 203.0.113.1
+```
+
+::: cuidado
+Las interfaces de un **router** vienen apagadas (`administratively down`): sin `no shutdown` no funcionan. Las de un **switch** vienen encendidas.
+:::
+
+La **ruta por defecto** (`0.0.0.0/0`) dice: "todo lo que no conozcas, mándalo al proveedor".
+
+## 5. Servicios: DHCP y NAT
+
+- **DHCP** reparte a cada PC su IP, máscara, puerta de enlace y DNS sin configurarlos a mano.
+- **NAT/PAT** traduce las IP privadas (`192.168.x.x`) a la IP pública del router, porque las privadas no existen en Internet.
+
+```ios
+R1(config)# ip dhcp excluded-address 192.168.1.1 192.168.1.10
+R1(config)# ip dhcp pool OFICINA
+R1(dhcp-config)# network 192.168.1.0 255.255.255.0
+R1(dhcp-config)# default-router 192.168.1.1
+R1(dhcp-config)# dns-server 8.8.8.8
+R1(dhcp-config)# exit
+R1(config)# access-list 1 permit 192.168.1.0 0.0.0.255
+R1(config)# ip nat inside source list 1 interface g0/1 overload
+R1(config)# interface g0/0
+R1(config-if)# ip nat inside
+R1(config-if)# interface g0/1
+R1(config-if)# ip nat outside
+```
+
+## 6. Verificar: siempre, y en orden
+
+| Pregunta | Comando |
+|---|---|
+| ¿Las interfaces están up/up y con la IP correcta? | `show ip interface brief` |
+| ¿El router sabe salir a Internet? | `show ip route` (busca `Gateway of last resort`) |
+| ¿Hay conexión con el proveedor y más allá? | `ping 203.0.113.1` y `ping 8.8.8.8` |
+| ¿Los PC reciben IP? | `show ip dhcp binding` |
+| ¿Se traducen las direcciones? | `show ip nat translations` |
+
+Y al final, **guardar**: `copy running-config startup-config`. Lo que no guardas desaparece al reiniciar.
+
+::: practica
+Configura tú mismo el router de esta oficina en el laboratorio de abajo. Después, en la sección **Práctica**, tienes los laboratorios de DHCP y NAT.
+:::
+
+[[cli:router]]
+
+::: quiz
+? ¿Qué equipo decide por dónde salen los paquetes hacia Internet?
+- El switch
++ El router
+- El PC
+= El router trabaja con IP (capa 3) y usa su tabla de rutas; el switch solo reparte tramas dentro de la LAN.
+
+? ¿Qué comando falta casi siempre cuando una interfaz de router recién configurada no funciona?
++ no shutdown
+- ip routing
+- switchport mode access
+= Las interfaces de router vienen administrativamente apagadas.
+
+? ¿Para qué sirve la ruta 0.0.0.0 0.0.0.0 hacia el proveedor?
+- Para bloquear Internet
++ Para enviar al proveedor todo lo que el router no conoce
+- Para dar IP a los PC
+= Es la ruta por defecto: la que se usa cuando no hay una ruta más específica.
+
+? ¿Por qué se excluyen direcciones del DHCP?
++ Para reservarlas a equipos con IP fija (router, impresoras, switch)
+- Para que el DHCP vaya más rápido
+- Porque son direcciones públicas
+= Si no se excluyen, el DHCP podría repartir la IP del router o de la impresora y provocar un conflicto.
+:::
+
+=== m2-vlan | VLAN: redes virtuales | 18 | 1
 Una **VLAN** divide un switch físico en varios switches lógicos. Cada VLAN es un **dominio de broadcast** distinto y una **subred IP** distinta.
 
 ## Por qué usar VLAN
@@ -177,7 +310,7 @@ Dos PC en VLAN distintas **no pueden comunicarse** aunque estén en el mismo swi
 = switchport voice vlan permite que el teléfono etiquete su tráfico con la VLAN de voz mientras el PC usa la VLAN de datos.
 :::
 
-=== m2-trunk | Trunks 802.1Q | 18
+=== m2-trunk | Trunks 802.1Q | 18 | 2
 Si las VLAN se extienden por varios switches, el enlace entre ellos debe llevar el tráfico de **todas** las VLAN: es un **trunk** (troncal).
 
 ## Cómo funciona 802.1Q
@@ -254,7 +387,7 @@ El **VLAN Trunking Protocol** propaga la lista de VLAN entre switches (modos ser
 = show interfaces trunk lista los puertos en modo trunk con su encapsulación, VLAN nativa y VLAN permitidas y activas.
 :::
 
-=== m2-intervlan | Enrutamiento entre VLAN | 16
+=== m2-intervlan | Enrutamiento entre VLAN | 16 | 2
 Cada VLAN es una subred distinta, así que para comunicarlas hace falta un dispositivo de capa 3. Hay tres formas.
 
 ## 1. Un router con una interfaz por VLAN (antiguo)
@@ -302,6 +435,8 @@ También se puede convertir un puerto de un switch de capa 3 en **puerto enrutad
 Si un switch de capa 3 no enruta entre VLAN, revisa que tenga `ip routing`. Sin ese comando las SVI funcionan como interfaces de gestión, pero no se enruta.
 :::
 
+[[cli:intervlan]]
+
 ::: quiz
 ? En router-on-a-stick, ¿qué comando asocia una subinterfaz a la VLAN 30?
 - switchport access vlan 30
@@ -328,7 +463,7 @@ Si un switch de capa 3 no enruta entre VLAN, revisa que tenga `ip routing`. Sin 
 = no switchport quita la función de capa 2 del puerto y permite asignarle una IP.
 :::
 
-=== m2-cdp | CDP y LLDP | 10
+=== m2-cdp | CDP y LLDP | 10 | 2
 Los protocolos de **descubrimiento de vecinos** permiten saber qué equipo hay al otro lado de cada cable, sin ir físicamente a mirarlo.
 
 ## CDP (Cisco Discovery Protocol)
@@ -383,7 +518,7 @@ CDP y LLDP revelan información útil para un atacante (modelo, versión de IOS,
 = Modelo, versión de IOS y direcciones IP son datos valiosos para preparar un ataque.
 :::
 
-=== m2-etherchannel | EtherChannel | 14
+=== m2-etherchannel | EtherChannel | 14 | 3
 **EtherChannel** agrupa varios enlaces físicos (hasta 8 activos) en **un único enlace lógico**. Suma el ancho de banda, da redundancia y, para Spanning Tree, cuenta como un solo enlace (no bloquea ninguno).
 
 ## Protocolos de negociación
@@ -443,7 +578,7 @@ El reparto de tráfico entre enlaces se hace por *hash* (MAC, IP o puertos de or
 = Todos los miembros deben tener la misma configuración; si no, el puerto se suspende.
 :::
 
-=== m2-stp | Spanning Tree Protocol | 20
+=== m2-stp | Spanning Tree Protocol | 20 | 2
 Los enlaces redundantes entre switches son necesarios para la disponibilidad, pero crean **bucles de capa 2**. Como las tramas Ethernet no tienen TTL, un broadcast daría vueltas para siempre: **tormenta de broadcast**, inestabilidad de la tabla MAC y tramas duplicadas. **STP (IEEE 802.1D)** evita los bucles **bloqueando** los puertos que sobran.
 
 ## Cómo decide STP
@@ -525,7 +660,7 @@ SW1# show spanning-tree vlan 10
 = Los 4 bits de prioridad del Bridge ID solo admiten múltiplos de 4096 (los otros 12 bits son el ID de VLAN extendido).
 :::
 
-=== m2-rstp | RSTP, PortFast y BPDU Guard | 14
+=== m2-rstp | RSTP, PortFast y BPDU Guard | 14 | 3
 **RSTP (802.1w)** converge en uno o dos segundos en lugar de los 30–50 de STP. Cisco lo implementa por VLAN como **Rapid PVST+**.
 
 ## Roles de puerto en RSTP
@@ -597,7 +732,93 @@ Otras protecciones: **Root Guard** (impide que un puerto se convierta en camino 
 = El modo por defecto suele ser pvst; rapid-pvst activa RSTP por VLAN.
 :::
 
-=== m2-wlan-arquitectura | Arquitecturas inalámbricas | 16
+=== m2-averias | Práctica: resolver averías en switches | 25 | 2
+En un trabajo de soporte de redes, **la mitad del tiempo es diagnosticar**. Esta lección te da el método y los comandos, y luego lo practicas con tres averías reales en el simulador.
+
+## El método: de abajo arriba
+
+1. **Capa 1, físico:** ¿el puerto está encendido y con cable? ¿Hay errores?
+2. **Capa 2, enlace:** ¿el puerto está en la VLAN correcta? ¿El trunk se forma y deja pasar la VLAN?
+3. **Capa 3, red:** ¿IP, máscara y puerta de enlace correctas? ¿Hay ping?
+
+::: cuidado
+**Nunca cambies nada sin diagnosticar primero.** Si tocas cinco cosas a la vez y vuelve a funcionar, no sabrás cuál era el problema, y quizá hayas roto otra cosa.
+:::
+
+## Qué buscar en cada comando
+
+| Comando | Qué mirar | Qué significa |
+|---|---|---|
+| `show interfaces status` | `notconnect` | No hay cable, o el otro extremo está apagado |
+| | `disabled` | Alguien hizo `shutdown` en el puerto |
+| | `err-disabled` | Lo apagó una protección (port security, BPDU Guard) |
+| | Columna `Vlan` | ¿Es la VLAN que debería? `trunk` si es troncal |
+| `show interfaces g0/2` | `CRC`, `late collision` | Dúplex distinto en cada extremo o cable dañado |
+| `show vlan brief` | Puertos de cada VLAN | Un puerto en la VLAN equivocada |
+| `show interfaces trunk` | No sale el puerto | El trunk **no** se ha formado |
+| | `Vlans allowed` | Falta una VLAN en la lista permitida |
+| | `NATIVE_VLAN_MISMATCH` | VLAN nativa distinta en cada extremo |
+| `show interfaces g0/1 switchport` | `Administrative` y `Operational Mode` | Lo configurado frente a lo que de verdad está funcionando |
+| `show mac address-table` | La MAC del PC y su puerto | Si el switch "ve" al equipo y en qué VLAN |
+| `show cdp neighbors` | Qué hay al otro lado de cada puerto | Confirmar que el cable va donde crees |
+
+## Las tres averías más típicas en un switch
+
+**1. Puerto apagado o en la VLAN equivocada.** El usuario "no tiene red". `show interfaces status` lo delata en segundos.
+
+**2. El trunk no pasa una VLAN.** Las causas suelen ser tres:
+- el enlace no es trunk (DTP en `dynamic auto` en los dos lados, o un lado no negocia);
+- la VLAN no está en `allowed vlan`;
+- la VLAN no existe en uno de los dos switches.
+
+**3. Dúplex distinto en cada extremo.** Funciona, pero lentísimo: un lado en `half` y el otro en `full` provoca colisiones tardías y errores CRC. Solución: `duplex auto` y `speed auto` en los dos lados, o fijar lo mismo en ambos.
+
+```ios
+SW1# show interfaces status
+SW1# show interfaces g0/1 switchport
+SW1# configure terminal
+SW1(config)# interface g0/1
+SW1(config-if)# switchport mode trunk
+SW1(config-if)# switchport trunk allowed vlan add 20
+```
+
+::: practica
+Resuelve las tres averías. En cada una: primero los comandos `show`, después el arreglo y al final la verificación. Si te atascas, pide una pista antes de mirar la solución.
+:::
+
+[[cli:averia-puerto]]
+
+[[cli:averia-trunk]]
+
+[[cli:averia-duplex]]
+
+::: quiz
+? En show interfaces status un puerto aparece como "disabled". ¿Qué significa?
++ Que tiene shutdown configurado
+- Que no tiene cable
+- Que lo ha apagado port security
+= disabled = apagado a mano; notconnect = sin cable; err-disabled = apagado por una protección.
+
+? Dos switches unidos con los dos puertos en dynamic auto. ¿Qué pasa con las VLAN?
+- Pasan todas por el trunk
++ No se forma trunk y solo pasa la VLAN de acceso
+- Pasa solo la VLAN nativa etiquetada
+= dynamic auto espera que el otro lado lo pida; si los dos esperan, el enlace queda en modo acceso.
+
+? Un servidor va muy lento y show interfaces muestra muchos CRC y colisiones tardías. ¿Qué es lo más probable?
++ Dúplex distinto en cada extremo
+- La VLAN nativa es distinta
+- Falta una ruta por defecto
+= Las colisiones tardías son la firma típica de un desajuste de dúplex.
+
+? ¿Qué comando muestra el modo de un puerto configurado y el modo en el que funciona de verdad?
+- show vlan brief
++ show interfaces g0/1 switchport
+- show ip interface brief
+= Muestra Administrative Mode y Operational Mode, ideal para trunks que no se forman.
+:::
+
+=== m2-wlan-arquitectura | Arquitecturas inalámbricas | 16 | 2
 ## Tipos de despliegue
 
 - **AP autónomo:** cada AP se configura de forma individual. Sirve para pocas unidades.
@@ -647,7 +868,7 @@ El AP ligero y el WLC se comunican con **CAPWAP** sobre UDP, mediante **dos tún
 = Meraki se gestiona desde un panel en la nube; el tráfico de usuarios no pasa por ella.
 :::
 
-=== m2-wlan-gestion | Acceso de gestión y puertos del WLC | 14
+=== m2-wlan-gestion | Acceso de gestión y puertos del WLC | 14 | 3
 ## Formas de administrar un equipo
 
 | Método | Cifrado | Comentario |
@@ -685,7 +906,7 @@ El AP ligero y el WLC se comunican con **CAPWAP** sobre UDP, mediante **dos tún
 = Las interfaces dinámicas mapean cada WLAN a una VLAN de la red cableada.
 :::
 
-=== m2-wlan-config | Configurar una WLAN en el WLC | 12
+=== m2-wlan-config | Configurar una WLAN en el WLC | 12 | 3
 En el examen puede aparecer una captura de la **interfaz gráfica del WLC** y preguntarte qué pestaña o qué opción usar. El flujo típico en un WLC con AireOS:
 
 1. **WLANs → Create New → Go.** Tipo *WLAN*, nombre de perfil, **SSID** y un **ID**.

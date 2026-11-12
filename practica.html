@@ -6,10 +6,10 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://uwwvywmsolckebbuktpy.supabase.co wss://uwwvywmsolckebbuktpy.supabase.co; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Práctica · Aula de Redes</title>
-<meta name="description" content="Laboratorios de subnetting, binario, VLSM, consola Cisco IOS y SQL con corrección automática.">
+<meta name="description" content="Laboratorios de consola Cisco (router, switch, VLAN, trunk, SSH, OSPF, DHCP, NAT, ACL), averías para aprender troubleshooting, subnetting y SQL, con corrección automática.">
 <link rel="canonical" href="https://gabrielpdrd05.github.io/aula-redes/practica.html">
 <meta property="og:title" content="Práctica · Aula de Redes">
-<meta property="og:description" content="Laboratorios de subnetting, binario, VLSM, consola Cisco IOS y SQL con corrección automática.">
+<meta property="og:description" content="Laboratorios de consola Cisco (router, switch, VLAN, trunk, SSH, OSPF, DHCP, NAT, ACL), averías para aprender troubleshooting, subnetting y SQL, con corrección automática.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0b7285">
 <link rel="icon" href="img/icono.svg" type="image/svg+xml">
@@ -23,7 +23,7 @@
 <a class="skip" href="#main">Saltar al contenido</a>
 <header class="site-header"><div class="container">
   <a class="brand" href="./"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><circle cx="16" cy="9" r="3.2" fill="var(--accent-ink)"/><circle cx="8.5" cy="22.5" r="3.2" fill="var(--accent-ink)"/><circle cx="23.5" cy="22.5" r="3.2" fill="var(--accent-ink)"/><path d="M16 12.2v4.3M16 16.5l-5.4 3.6M16 16.5l5.4 3.6" stroke="var(--accent-ink)" stroke-width="2" stroke-linecap="round"/></svg><span>Aula de Redes</span></a>
-  <nav class="nav" aria-label="Principal"><a href="curso.html">Curso</a><a href="practica.html" aria-current="page">Práctica</a><a href="examen.html">Examen</a><a href="tutor.html">Buscar</a></nav>
+  <nav class="nav" aria-label="Principal"><a href="curso.html">Curso</a><a href="practica.html" aria-current="page">Práctica</a><a href="comandos.html">Comandos</a><a href="examen.html">Examen</a><a href="tutor.html">Buscar</a></nav>
   <div class="header-actions">
     <button type="button" class="btn btn-quiet theme-toggle" id="themeToggle" aria-label="Cambiar entre tema claro y oscuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg></button>
     <a class="btn btn-ghost btn-sm" href="cuenta.html" data-auth="out">Entrar</a>
@@ -32,11 +32,22 @@
 </div></header>
 <main id="main">
 <section class="page"><div class="container">
-  <div class="page-head"><h1>Práctica</h1><p>Laboratorios con corrección automática. Los que completes quedan marcados en tu progreso.</p></div>
+  <div class="page-head"><h1>Práctica</h1><p>Laboratorios con corrección automática, ordenados por nivel. Los que completes quedan marcados en tu progreso. Empieza por el nivel 1 y sube cuando los tengas todos.</p></div>
+  <p class="alert alert-info mb"><span>¿No recuerdas un comando? Consulta la <a href="comandos.html">guía de comandos Cisco IOS</a>: qué hace cada uno, en qué modo va y un ejemplo.</span></p>
+  <div class="tabs level-filter" role="group" aria-label="Filtrar por nivel" id="filtroNivel">
+    <button type="button" data-nivel="" aria-pressed="true">Todos</button>
+    <button type="button" data-nivel="principiante" aria-pressed="false">Nivel 1</button>
+    <button type="button" data-nivel="intermedio" aria-pressed="false">Nivel 2</button>
+    <button type="button" data-nivel="avanzado" aria-pressed="false">Nivel 3</button>
+  </div>
+  <h2>Consola Cisco: configurar paso a paso</h2>
+  <p class="muted">Router, switch, VLAN, trunks, SSH, rutas, OSPF, DHCP, NAT y ACL con comandos reales de IOS.</p>
+  <div class="grid-3" id="labsCli"></div>
+  <h2>Resolución de problemas (averías)</h2>
+  <p class="muted">La red está rota a propósito. Diagnostica con comandos <code>show</code>, encuentra la causa, arréglala y verifica: es lo que harás cada día en un trabajo de redes.</p>
+  <div class="grid-3" id="labsAverias"></div>
   <h2>Números y direccionamiento</h2>
   <div class="grid-3" id="labsNumeros"></div>
-  <h2>Consola Cisco IOS</h2>
-  <div class="grid-3" id="labsCli"></div>
   <h2>Bases de datos (SQL)</h2>
   <div class="grid-3" id="labsSql"></div>
 </div></section>

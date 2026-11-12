@@ -5,7 +5,7 @@ dominio: 1.0 Network Fundamentals
 peso: 20
 descripcion: Qué es una red, qué hace cada equipo, los modelos OSI y TCP/IP, cableado, Ethernet, direccionamiento IPv4 e IPv6, subnetting, TCP/UDP, inalámbrico y virtualización.
 ---
-=== m1-redes | ¿Qué es una red? | 12
+=== m1-redes | ¿Qué es una red? | 12 | 1
 Una **red** es un conjunto de dispositivos conectados que comparten información y recursos. Cuando abres una página web, tu móvil manda datos a través de varias redes (la wifi de tu casa, la red de tu proveedor de internet, la red troncal de internet y la red del servidor) y la respuesta vuelve por el mismo tipo de camino en milisegundos.
 
 ## Los elementos de cualquier red
@@ -68,7 +68,7 @@ En los diagramas de red, Cisco usa iconos estándar: el **router** es un círcul
 = Una WAN (red de área amplia) conecta redes separadas geográficamente, normalmente a través de un proveedor.
 :::
 
-=== m1-dispositivos | Los dispositivos de red y su función | 14
+=== m1-dispositivos | Los dispositivos de red y su función | 14 | 1
 Para el examen tienes que saber **qué hace cada equipo** y **en qué capa trabaja**.
 
 ## Switch (conmutador)
@@ -145,7 +145,7 @@ Pregunta clásica: "¿Qué dispositivo separa dominios de broadcast?" → el **r
 = Los AP ligeros (lightweight) dependen de un WLC, que les entrega la configuración y gestiona la radiofrecuencia.
 :::
 
-=== m1-osi | Los modelos OSI y TCP/IP | 16
+=== m1-osi | Los modelos OSI y TCP/IP | 16 | 1
 Para que equipos de fabricantes distintos se entiendan, la comunicación se divide en **capas**. Cada capa hace un trabajo concreto y ofrece un servicio a la capa de arriba.
 
 ## El modelo OSI (7 capas)
@@ -217,7 +217,7 @@ Asocia siempre: **capa 2 → MAC → trama → switch** y **capa 3 → IP → pa
 = Encapsular es añadir cabeceras al enviar; desencapsular es quitarlas al recibir.
 :::
 
-=== m1-cableado | Medios físicos y cableado | 15
+=== m1-cableado | Medios físicos y cableado | 15 | 1
 La capa física transporta los bits. Elegir bien el medio determina la velocidad, la distancia y la fiabilidad del enlace.
 
 ## Cable de cobre UTP
@@ -305,7 +305,7 @@ GigabitEthernet0/1 is up, line protocol is up (connected)
 = Giants son tramas de más de 1518 bytes (sin contar etiquetas), normalmente por MTU distintas.
 :::
 
-=== m1-ethernet | Ethernet y la conmutación de tramas | 15
+=== m1-ethernet | Ethernet y la conmutación de tramas | 15 | 1
 **Ethernet** (IEEE 802.3) es el protocolo de capa 2 de casi todas las LAN cableadas.
 
 ## La dirección MAC
@@ -388,7 +388,7 @@ Con los antiguos hubs, todos compartían el medio y usaban **CSMA/CD** para gest
 = El temporizador de envejecimiento por defecto es de 300 segundos (5 minutos).
 :::
 
-=== m1-binario | Números binarios y hexadecimales | 14
+=== m1-binario | Números binarios y hexadecimales | 14 | 1
 Las direcciones IP y las máscaras son números binarios. Dominar la conversión es la base del subnetting.
 
 ## Binario a decimal
@@ -460,7 +460,7 @@ Base 16 (0–9 y A–F). Cada dígito hexadecimal son **4 bits**, así que un by
 = 252 = 11111100: seis unos y dos ceros.
 :::
 
-=== m1-ipv4 | Direccionamiento IPv4 | 16
+=== m1-ipv4 | Direccionamiento IPv4 | 16 | 1
 Una **dirección IPv4** tiene **32 bits**, escritos como cuatro octetos en decimal separados por puntos: `192.168.10.25`.
 
 ## Red y host
@@ -542,7 +542,7 @@ Si ves que un PC tiene una dirección `169.254.x.x`, la respuesta casi siempre e
 = El primer octeto 150 está entre 128 y 191: clase B.
 :::
 
-=== m1-subnetting | Subnetting paso a paso | 22
+=== m1-subnetting | Subnetting paso a paso | 22 | 2
 **Hacer subredes** (subnetting) es dividir una red en redes más pequeñas tomando bits de la porción de host. Sirve para separar departamentos, reducir los broadcasts y no desperdiciar direcciones.
 
 ## Las tres fórmulas
@@ -629,7 +629,7 @@ Haz 10 ejercicios del entrenador cada día. Cuando aciertes 10 seguidos en menos
 = Un /30 deja exactamente 2 hosts. Cisco también admite /31 en enlaces punto a punto.
 :::
 
-=== m1-vlsm | VLSM y resumen de rutas | 18
+=== m1-vlsm | VLSM y resumen de rutas | 18 | 2
 Con subnetting clásico todas las subredes tienen el mismo tamaño. Con **VLSM** (máscara de subred de longitud variable) cada subred tiene el tamaño que necesita.
 
 ## Cómo diseñar con VLSM
@@ -681,7 +681,7 @@ Un resumen demasiado amplio puede atraer tráfico hacia redes que no existen det
 = /27 da 30 hosts. /28 solo da 14.
 :::
 
-=== m1-ipv6 | IPv6 | 20
+=== m1-ipv6 | IPv6 | 20 | 2
 IPv4 tiene unos 4.300 millones de direcciones y se agotaron hace años. **IPv6** usa **128 bits**: unos 340 sextillones de direcciones.
 
 ## Formato
@@ -777,7 +777,7 @@ R1# show ipv6 interface brief
 = Las ULA (FD00::/8 en la práctica) son para uso interno y no se enrutan en internet.
 :::
 
-=== m1-transporte | TCP y UDP | 16
+=== m1-transporte | TCP y UDP | 16 | 1
 La capa de transporte lleva los datos **de una aplicación a otra**. Para saber a qué aplicación pertenece cada segmento usa **números de puerto**.
 
 ## Puertos
@@ -860,7 +860,7 @@ No establece conexión, no confirma ni retransmite, no ordena. Su cabecera mide 
 = UDP solo lleva puertos de origen y destino, longitud y checksum: 8 bytes.
 :::
 
-=== m1-arp | ARP: de la IP a la MAC | 14
+=== m1-arp | ARP: de la IP a la MAC | 14 | 1
 Para enviar un paquete a otro equipo de **su misma red**, un PC necesita la **MAC** del destino, porque la trama Ethernet va dirigida a una MAC. **ARP** (Address Resolution Protocol) la averigua.
 
 ## Cómo funciona
@@ -922,7 +922,7 @@ En IPv6 no existe ARP: lo sustituye **NDP** (Neighbor Discovery), con los mensaj
 = NDP usa mensajes ICMPv6 Neighbor Solicitation y Neighbor Advertisement.
 :::
 
-=== m1-verificar | Verificar la configuración IP en el sistema operativo | 12
+=== m1-verificar | Verificar la configuración IP en el sistema operativo | 12 | 1
 Antes de culpar a la red, comprueba la configuración del propio equipo. Debes conocer los comandos de Windows, macOS y Linux.
 
 ## Ver la configuración
@@ -978,7 +978,7 @@ ipconfig /flushdns        # vacía la caché DNS
 = Sin un gateway correcto, el equipo no sabe enviar tráfico fuera de su red.
 :::
 
-=== m1-inalambrico | Principios de las redes inalámbricas | 16
+=== m1-inalambrico | Principios de las redes inalámbricas | 16 | 1
 Las WLAN usan los estándares **IEEE 802.11**. Comparten el aire, así que conviene entender cómo se reparten las frecuencias.
 
 ## Bandas y estándares
@@ -1039,7 +1039,7 @@ Absorción (agua, personas), reflexión (metal), dispersión e interferencias re
 = Wi-Fi 4 = 802.11n, Wi-Fi 5 = 802.11ac, Wi-Fi 6/6E = 802.11ax, Wi-Fi 7 = 802.11be.
 :::
 
-=== m1-virtualizacion | Virtualización y nube | 14
+=== m1-virtualizacion | Virtualización y nube | 14 | 2
 ## Máquinas virtuales
 
 Un **hipervisor** permite ejecutar varias **máquinas virtuales (VM)** en un mismo servidor físico, cada una con su propio sistema operativo.
@@ -1093,7 +1093,7 @@ Tipos de despliegue: **pública, privada, híbrida y comunitaria**. La conexión
 = Software como servicio: la empresa solo usa la aplicación.
 :::
 
-=== m1-arquitecturas | Arquitecturas de red | 14
+=== m1-arquitecturas | Arquitecturas de red | 14 | 2
 ## Diseño jerárquico de campus
 
 **Tres capas** (redes grandes):

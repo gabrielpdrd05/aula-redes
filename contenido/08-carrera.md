@@ -5,7 +5,7 @@ dominio: Carrera profesional
 peso: 0
 descripcion: Cómo preparar y aprobar el examen CCNA, cómo practicar como en el trabajo, cómo conseguir tu primer empleo en redes y cómo responder en una entrevista técnica.
 ---
-=== m8-examen | El examen CCNA 200-301: plan para aprobar | 14
+=== m8-examen | El examen CCNA 200-301: plan para aprobar | 14 | 1
 ## Datos del examen
 
 - **Código:** 200-301 CCNA. Un único examen; no hay requisitos previos.
@@ -56,7 +56,7 @@ descripcion: Cómo preparar y aprobar el examen CCNA, cómo practicar como en el
 = Los exámenes de Cisco se reservan a través de Pearson VUE.
 :::
 
-=== m8-practica | Practicar como en el trabajo | 14
+=== m8-practica | Practicar como en el trabajo | 14 | 2
 Aprobar el CCNA abre la puerta, pero lo que te hace bueno es resolver problemas reales. Practica con la **metodología de resolución de problemas**:
 
 1. **Define el problema:** ¿qué falla exactamente, a quién, desde cuándo? ¿Qué ha cambiado?
@@ -99,7 +99,7 @@ Monta estas topologías en Packet Tracer y documéntalas (captura del diagrama +
 = La documentación ahorra tiempo la próxima vez que ocurra.
 :::
 
-=== m8-empleo | Tu primer empleo en redes | 14
+=== m8-empleo | Tu primer empleo en redes | 14 | 1
 ## Puestos de entrada
 
 | Puesto | Qué hace | Lo que más piden |
@@ -140,7 +140,7 @@ El salto habitual: **soporte o NOC → técnico de redes → administrador o ing
 = Los proyectos demuestran que sabes hacer el trabajo, no solo que lo has estudiado.
 :::
 
-=== m8-entrevista | Preguntas de entrevista técnica | 16
+=== m8-entrevista | Preguntas de entrevista técnica | 16 | 2
 Estas preguntas aparecen en casi todas las entrevistas para puestos junior de redes. Intenta responderlas en voz alta antes de leer la respuesta.
 
 ## Preguntas y respuestas modelo

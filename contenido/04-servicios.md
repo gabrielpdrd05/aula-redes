@@ -5,7 +5,7 @@ dominio: 4.0 IP Services
 peso: 10
 descripcion: NAT y PAT, DHCP, DNS, NTP, SNMP, Syslog, QoS, acceso remoto con SSH y transferencia de archivos con TFTP/FTP.
 ---
-=== m4-nat | NAT y PAT | 20
+=== m4-nat | NAT y PAT | 20 | 2
 Las direcciones privadas (RFC 1918) no se enrutan en internet. **NAT** (Network Address Translation) traduce las direcciones privadas a públicas al salir y deshace la traducción en las respuestas.
 
 ## Terminología (se pregunta mucho)
@@ -54,6 +54,8 @@ R1# clear ip nat translation *
 Errores típicos en los ejercicios de NAT: las interfaces `ip nat inside` / `ip nat outside` al revés, la ACL que no incluye la red interna, o falta la palabra **overload** (sin ella, solo un equipo podría salir a la vez con la IP de la interfaz).
 :::
 
+[[cli:nat]]
+
 ::: quiz
 ? Un PC interno 10.0.0.5 sale a internet como 198.51.100.7. ¿Qué es 10.0.0.5?
 + Inside local
@@ -86,7 +88,7 @@ Errores típicos en los ejercicios de NAT: las interfaces `ip nat inside` / `ip 
 = ip nat inside debe ir en la interfaz de la LAN y ip nat outside en la de internet.
 :::
 
-=== m4-dhcp | DHCP | 18
+=== m4-dhcp | DHCP | 18 | 2
 **DHCP** (Dynamic Host Configuration Protocol) entrega automáticamente a cada equipo su **IP, máscara, puerta de enlace, servidores DNS** y otros datos, por un tiempo limitado (**concesión** o *lease*).
 
 ## El proceso DORA
@@ -135,6 +137,8 @@ R1(config-if)# ip address dhcp
 
 Típico en la interfaz que da al proveedor de internet.
 
+[[cli:dhcp]]
+
 ::: quiz
 ? ¿Cuál es el orden de los mensajes DHCP?
 - Request, Offer, Discover, Ack
@@ -167,7 +171,7 @@ Típico en la interfaz que da al proveedor de internet.
 = DHCP funciona sobre UDP: 67 el servidor y 68 el cliente.
 :::
 
-=== m4-dns | DNS | 14
+=== m4-dns | DNS | 14 | 1
 El **DNS** traduce nombres (`www.cisco.com`) en direcciones IP. Sin DNS tendríamos que memorizar IP.
 
 ## La jerarquía
@@ -236,7 +240,7 @@ R1(config)# no ip domain-lookup
 = Las consultas normales van por UDP 53; TCP 53 se usa para respuestas grandes y transferencias de zona.
 :::
 
-=== m4-ntp | NTP: sincronizar la hora | 10
+=== m4-ntp | NTP: sincronizar la hora | 10 | 2
 Que todos los equipos tengan **la misma hora** es esencial para correlacionar registros (logs), para los certificados digitales y para la autenticación (Kerberos falla con más de 5 minutos de diferencia).
 
 **NTP** (Network Time Protocol, **UDP 123**) sincroniza los relojes con una fuente de referencia.
@@ -285,7 +289,7 @@ Un router puede ser **cliente** (`ntp server`), **servidor** (`ntp master`) o **
 = ntp master usa el reloj interno como referencia; ntp server lo convierte en cliente.
 :::
 
-=== m4-snmp-syslog | SNMP y Syslog | 16
+=== m4-snmp-syslog | SNMP y Syslog | 16 | 2
 ## SNMP
 
 **SNMP** (Simple Network Management Protocol) permite a una plataforma de monitorización (el **NMS** o **gestor**) consultar y configurar los equipos (los **agentes**). La información se organiza en la **MIB**, donde cada dato tiene un identificador **OID**.
@@ -371,7 +375,7 @@ Formato de un mensaje: `*Mar 1 10:15:02.123: %LINEPROTO-5-UPDOWN: Line protocol 
 = Syslog clásico usa UDP 514.
 :::
 
-=== m4-qos | Calidad de servicio (QoS) | 18
+=== m4-qos | Calidad de servicio (QoS) | 18 | 3
 Cuando un enlace se satura, los paquetes se acumulan en colas. **QoS** decide **qué tráfico va primero** para que la voz y el vídeo funcionen aunque haya congestión.
 
 ## Características que hay que controlar
@@ -441,7 +445,7 @@ El **límite de confianza** es el punto a partir del cual se respetan las marcas
 = Voz: retardo ≤ 150 ms, jitter ≤ 30 ms, pérdida ≤ 1 %.
 :::
 
-=== m4-ssh | Acceso remoto seguro con SSH | 14
+=== m4-ssh | Acceso remoto seguro con SSH | 14 | 2
 Configurar SSH en un router o switch es una tarea que harás en tu primer día de trabajo y que el examen pregunta paso a paso.
 
 ## Los pasos
@@ -507,7 +511,7 @@ Para limitar desde dónde se puede administrar, aplica una ACL a las VTY: `acces
 = En las líneas VTY se usa access-class; ip access-group es para interfaces.
 :::
 
-=== m4-tftp | TFTP y FTP: copiar imágenes y configuraciones | 10
+=== m4-tftp | TFTP y FTP: copiar imágenes y configuraciones | 10 | 2
 Para hacer copias de seguridad de la configuración o actualizar el IOS se copian archivos entre el equipo y un servidor.
 
 | | TFTP | FTP |

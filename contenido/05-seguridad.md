@@ -5,7 +5,7 @@ dominio: 5.0 Security Fundamentals
 peso: 15
 descripcion: Amenazas y mitigación, contraseñas y MFA, AAA, listas de control de acceso, seguridad de capa 2, VPN IPsec y seguridad inalámbrica.
 ---
-=== m5-conceptos | Amenazas, vulnerabilidades y ataques | 18
+=== m5-conceptos | Amenazas, vulnerabilidades y ataques | 18 | 1
 ## Vocabulario básico
 
 - **Vulnerabilidad:** una debilidad (un software sin parchear, una contraseña por defecto).
@@ -55,7 +55,7 @@ La seguridad busca proteger la **triada CIA**: **Confidencialidad** (solo accede
 = Un DoS busca dejar el servicio no disponible.
 :::
 
-=== m5-programa | El programa de seguridad | 10
+=== m5-programa | El programa de seguridad | 10 | 1
 La tecnología no basta: la mayoría de incidentes empiezan por un error humano. Un **programa de seguridad** completo incluye:
 
 - **Concienciación de los usuarios:** campañas periódicas, simulacros de phishing, avisos sobre amenazas actuales.
@@ -121,7 +121,7 @@ El CCNA pide **describir** los elementos de un programa de seguridad: conciencia
 = Reiniciando el equipo e interrumpiendo el arranque se salta la contraseña: el acceso físico lo anula todo.
 :::
 
-=== m5-contrasenas | Contraseñas, MFA y control de acceso a los equipos | 16
+=== m5-contrasenas | Contraseñas, MFA y control de acceso a los equipos | 16 | 1
 ## Políticas de contraseñas
 
 - Longitud mínima (12 o más caracteres; mejor **frases de contraseña**).
@@ -190,7 +190,7 @@ R1(config-line)# exec-timeout 5 0
 = La biometría es "algo que eres".
 :::
 
-=== m5-aaa | AAA: autenticación, autorización y registro | 12
+=== m5-aaa | AAA: autenticación, autorización y registro | 12 | 2
 **AAA** centraliza el control de quién entra en los equipos de red y qué hace.
 
 - **Autenticación (Authentication):** ¿quién eres? (usuario y contraseña, certificado).
@@ -247,7 +247,7 @@ R1(config)# aaa accounting commands 15 default start-stop group tacacs+
 = El método local actúa como respaldo si el servidor no está disponible.
 :::
 
-=== m5-acl-estandar | ACL estándar | 18
+=== m5-acl-estandar | ACL estándar | 18 | 2
 Una **lista de control de acceso (ACL)** es una lista ordenada de reglas **permit** o **deny** que el router aplica a los paquetes de una interfaz.
 
 ## Cómo se procesa una ACL
@@ -326,7 +326,7 @@ Solo puede haber **una ACL por interfaz, por sentido y por protocolo** (una IPv4
 = En líneas se usa access-class; en interfaces, ip access-group.
 :::
 
-=== m5-acl-extendida | ACL extendidas | 18
+=== m5-acl-extendida | ACL extendidas | 18 | 3
 Las **ACL extendidas** filtran por **protocolo, IP de origen, IP de destino y puertos**. Números **100–199** y **2000–2699**, o con nombre.
 
 **Dónde aplicarlas: lo más cerca posible del origen**, para descartar el tráfico no deseado cuanto antes y no gastar ancho de banda.
@@ -397,7 +397,71 @@ Con los números de secuencia puedes **insertar** una regla entre dos o **borrar
 = Los números de secuencia permiten editar reglas individuales.
 :::
 
-=== m5-capa2 | Seguridad de capa 2 | 18
+=== m5-averias | Práctica: averías de acceso seguro (SSH y ACL) | 20 | 2
+Dos de las quejas más comunes en un equipo de redes son "no puedo entrar por SSH al switch" y "desde que pusisteis la ACL no funciona nada". Las dos tienen causas muy repetidas.
+
+## SSH no funciona: la lista de comprobación
+
+| Requisito | Cómo comprobarlo |
+|---|---|
+| Hostname distinto del de fábrica y dominio | `show running-config` (`hostname`, `ip domain-name`) |
+| Claves RSA generadas (≥ 768 bits para SSHv2, mejor 2048) | `show ip ssh` dice `SSH Enabled - version 2.0` |
+| Un usuario local | `username admin privilege 15 secret ...` |
+| Las vty piden usuario y aceptan SSH | `line vty 0 15` → `login local` y `transport input ssh` |
+| La IP de gestión responde | `ping` a la SVI y `ip default-gateway` |
+
+::: cuidado
+`login` (sin `local`) usa la contraseña de la línea, compartida por todos y sin registro de quién entró. En una empresa se usa `login local` o un servidor AAA.
+:::
+
+## Una ACL lo ha roto todo: las causas clásicas
+
+1. **Falta el permit final.** Toda ACL acaba con un `deny any` **implícito** que no se ve. Una ACL con solo un `deny` lo bloquea **todo**.
+2. **Está en la interfaz o el sentido equivocados.** `in` filtra lo que **entra** por la interfaz; `out`, lo que **sale**.
+3. **El orden de las reglas.** Se leen de arriba abajo y gana la **primera** que coincide.
+4. **Ubicación:** las **estándar** (solo miran el origen) cerca del **destino**; las **extendidas**, cerca del **origen**.
+
+```ios
+R1# show access-lists
+Standard IP access list 10
+    10 deny   192.168.20.0, wildcard bits 0.0.0.255 (34 matches)
+R1# show running-config | include access-group
+ ip access-group 10 in
+```
+
+Los contadores (*matches*) te dicen qué regla está actuando de verdad.
+
+[[cli:averia-ssh]]
+
+[[cli:averia-acl]]
+
+::: quiz
+? show ip ssh responde "%SSH has not been enabled". ¿Qué falta?
++ Generar las claves RSA
+- El comando login local
+- Una ACL en las vty
+= SSH se activa al generar las claves RSA (crypto key generate rsa).
+
+? Una ACL tiene solo la línea "deny 192.168.20.0 0.0.0.255". ¿Qué tráfico deja pasar?
+- Todo menos la red 192.168.20.0/24
++ Ninguno
+- Solo la red 192.168.20.0/24
+= El deny any implícito del final bloquea todo lo que no tiene un permit.
+
+? ¿Dónde se coloca normalmente una ACL estándar?
++ Lo más cerca posible del destino
+- Lo más cerca posible del origen
+- Siempre en la interfaz hacia Internet
+= Como solo filtra por origen, ponerla cerca del origen bloquearía también otros destinos.
+
+? ¿Qué comando de línea vty permite solo conexiones SSH?
+- login local
++ transport input ssh
+- ip ssh version 2
+= transport input define qué protocolos aceptan las líneas virtuales.
+:::
+
+=== m5-capa2 | Seguridad de capa 2 | 18 | 3
 Los ataques dentro de la LAN son frecuentes y los switches tienen funciones para frenarlos.
 
 ## Port security
@@ -485,7 +549,7 @@ SW1(config-if)# ip arp inspection trust
 = Las MAC sticky se comportan como estáticas una vez guardada la configuración.
 :::
 
-=== m5-vpn | VPN: túneles cifrados | 14
+=== m5-vpn | VPN: túneles cifrados | 14 | 3
 Una **VPN** (red privada virtual) crea un túnel seguro a través de una red no fiable, normalmente internet.
 
 ## Tipos
@@ -531,7 +595,7 @@ Protocolos: **ESP** (cifra y autentica; es el que se usa) y **AH** (solo autenti
 = Por ejemplo Cisco Secure Client (antes AnyConnect).
 :::
 
-=== m5-wifi | Seguridad inalámbrica | 14
+=== m5-wifi | Seguridad inalámbrica | 14 | 2
 Como la wifi se propaga por el aire, cualquiera cerca puede capturar el tráfico. Hay que autenticar a los usuarios y cifrar los datos.
 
 ## Evolución

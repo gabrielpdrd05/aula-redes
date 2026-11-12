@@ -84,17 +84,20 @@ function encajar(pat, toks) {
 }
 
 // ---------------------------------------------------------------- estado inicial
-export function nuevoEquipo({ tipo = 'switch', hostname, interfaces, vecinos = [], hosts = [], estadoInicial } = {}) {
+export function nuevoEquipo({ tipo = 'switch', hostname, interfaces, vecinos = [], hosts = [], cdp = [], vecinoL2 = {}, soloConectados = false, estadoInicial } = {}) {
   const ifs = {};
-  for (const i of interfaces) ifs[i.nombre] = { nombre: i.nombre, shutdown: i.shutdown ?? tipo === 'router', ip: i.ip || null, mask: i.mask || null, conectada: i.conectada ?? true, mode: tipo === 'switch' && !/^(Vlan|Loopback)/.test(i.nombre) ? 'dynamic auto' : null, accessVlan: 1, nativeVlan: 1, allowed: 'all', nonegotiate: false, description: '', ps: null, acl: {}, ospfArea: null, encap: null, portfast: false };
+  for (const i of interfaces) ifs[i.nombre] = { nombre: i.nombre, shutdown: i.shutdown ?? tipo === 'router', ip: i.ip || null, mask: i.mask || null, conectada: i.conectada ?? true, mode: tipo === 'switch' && !/^(Vlan|Loopback)/.test(i.nombre) ? 'dynamic auto' : null, accessVlan: 1, nativeVlan: 1, allowed: 'all', nonegotiate: false, description: '', ps: null, acl: {}, ospfArea: null, encap: null, portfast: false, nat: null, helper: null, duplex: 'auto', speed: 'auto' };
   const eq = {
     tipo, hostname: hostname || (tipo === 'switch' ? 'Switch' : 'Router'), modo: 'user', ctx: null,
     enableSecret: null, enablePassword: null, spe: false, banner: null, domain: null, domainLookup: true, rsa: 0, sshVersion: 1,
     users: {}, lines: { con: { password: null, login: false, local: false, timeout: null }, vty: { password: null, login: false, local: false, transport: 'all', timeout: null, accessClass: null } },
     vlans: tipo === 'switch' ? { 1: 'default' } : {}, ifs, rutas: [], ospf: null, acls: {}, ipRouting: tipo === 'router', ipv6Routing: false, defaultGateway: null,
-    guardada: null, vecinos, hosts, historial: [], patrones: new Set(),
+    guardada: null, vecinos, hosts, cdp, vecinoL2, historial: [], patrones: new Set(),
+    dhcp: { excluidas: [], pools: {} }, nat: { listas: [], estaticas: [] },
   };
   if (estadoInicial) estadoInicial(eq);
+  // Laboratorios realistas: solo hay cable en los puertos con un equipo, un vecino o un trunk.
+  if (soloConectados) for (const i of Object.values(eq.ifs)) if (!i.virtual) i.conectada = hosts.some(h => h.puerto === i.nombre) || !!vecinoL2[i.nombre] || cdp.some(c => c.local === i.nombre) || i.mode === 'trunk';
   eq.guardada = runningConfig(eq);
   return eq;
 }
@@ -115,6 +118,16 @@ const PRIV_SHOW = [
   ['show port-security interface <i:iface>', (s, a) => showPortSecurity(s, a.i)],
   ['show port-security', s => Object.values(s.ifs).filter(i => i.ps).map(i => showPortSecurity(s, i.nombre)).join('\n\n') || 'No hay puertos con port security.'],
   ['show ip ssh', s => (s.rsa ? `SSH Enabled - version ${s.sshVersion === 2 ? '2.0' : '1.99'}\nAuthentication timeout: 120 secs; Authentication retries: 3` : '%SSH has not been enabled')],
+  ['show interfaces status', s => showIfStatus(s)],
+  ['show interfaces <i:iface> switchport', (s, a) => showSwitchport(s, a.i)],
+  ['show interfaces <i:iface>', (s, a) => showInterfaz(s, a.i)],
+  ['show running-config interface <i:iface>', (s, a) => { const b = runningConfig(s).split('\n'); const k = b.indexOf('interface ' + a.i); if (k < 0) return '% Invalid input detected: interfaz inexistente'; const f = b.indexOf('!', k); return b.slice(k, f).join('\n'); }],
+  ['show mac address-table', s => showMac(s)],
+  ['show cdp neighbors', s => showCdp(s)],
+  ['show {arp|ip arp}', s => showArp(s)],
+  ['show ip dhcp pool', s => showDhcpPool(s)],
+  ['show ip dhcp binding', s => showDhcpBinding(s)],
+  ['show ip nat translations', s => showNat(s)],
   ['show history', s => s.historial.slice(-20).map(h => '  ' + h).join('\n')],
   ['show clock', () => '*' + new Date().toUTCString()],
   ['show version', s => `Cisco IOS Software (simulador de Aula de Redes), ${s.tipo === 'switch' ? 'C2960' : 'ISR4321'}\n${s.hostname} uptime is 12 minutes\nConfiguration register is 0x2102`],
@@ -136,6 +149,8 @@ const USER = [
   ['exit', () => '\n(sesión cerrada; pulsa Intro para volver a entrar)'],
   ['ping <ip:ip>', (s, a) => ping(s, a.ip)],
   ['show ip interface brief', s => showIpIntBrief(s)],
+  ['show interfaces status', s => showIfStatus(s)],
+  ['show cdp neighbors', s => showCdp(s)],
   ['show version', s => `Cisco IOS Software (simulador de Aula de Redes)\n${s.hostname} uptime is 12 minutes`],
 ];
 
@@ -186,6 +201,14 @@ const CONFIG = [
   ['cdp run', () => {}], ['no cdp run', () => {}], ['lldp run', () => {}],
   ['ntp server <ip:ip>', () => {}],
   ['logging host <ip:ip>', () => {}],
+  ['ip dhcp excluded-address <a:ip> [<b:ip>]', (s, a) => { if (s.tipo !== 'router') return '% El servidor DHCP de este laboratorio se configura en el router.'; s.dhcp.excluidas.push([a.a, a.b || a.a]); }],
+  ['no ip dhcp excluded-address <a:ip> [<b:ip>]', (s, a) => { s.dhcp.excluidas = s.dhcp.excluidas.filter(([x, y]) => !(x === a.a && y === (a.b || a.a))); }],
+  ['ip dhcp pool <n:word>', (s, a) => { if (s.tipo !== 'router') return '% El servidor DHCP de este laboratorio se configura en el router.'; if (!s.dhcp.pools[a.n]) s.dhcp.pools[a.n] = { net: null, mask: null, gw: null, dns: [], dominio: null }; s.modo = 'dhcp'; s.ctx = a.n; }],
+  ['no ip dhcp pool <n:word>', (s, a) => { delete s.dhcp.pools[a.n]; }],
+  ['ip nat inside source list <l:word> interface <i:iface> overload', (s, a) => { if (!s.ifs[a.i]) return '% Interfaz inexistente: ' + a.i; s.nat.listas = s.nat.listas.filter(n => n.lista !== a.l); s.nat.listas.push({ lista: a.l, iface: a.i, overload: true }); }],
+  ['no ip nat inside source list <l:word> interface <i:iface> overload', (s, a) => { s.nat.listas = s.nat.listas.filter(n => n.lista !== a.l); }],
+  ['ip nat inside source static <l:ip> <g:ip>', (s, a) => { s.nat.estaticas = s.nat.estaticas.filter(n => n.local !== a.l); s.nat.estaticas.push({ local: a.l, global: a.g }); }],
+  ['no ip nat inside source static <l:ip> <g:ip>', (s, a) => { s.nat.estaticas = s.nat.estaticas.filter(n => n.local !== a.l); }],
   ['do <c:rest>', (s, a) => ejecutarEnModo(s, 'priv', a.c)],
   ...COMUNES_CONFIG.map(([p, f]) => [p, f || salirA('priv')]),
 ];
@@ -193,6 +216,7 @@ const CONFIG = [
 const IF = [
   ['ip address <ip:ip> <m:ip>', (s, a) => paraCada(s, i => {
     if (i.nombre.startsWith('Vlan') || s.tipo === 'router' || i.routed) {
+      if (i.nombre.includes('.') && !i.encap) return '% Configuring IP routing on a LAN subinterface is only allowed if that subinterface is already configured as part of an IEEE 802.10, IEEE 802.1Q, or ISL vLAN.\n(Pista: primero encapsulation dot1q <vlan>)';
       if (!esMascara(ipNum(a.m))) return '% Bad mask ' + a.m;
       const ip = ipNum(a.ip), m = ipNum(a.m);
       if (prefijo(m) < 31 && (ip === redDe(ip, m) || ip === redDe(ip, m) + 2 ** (32 - prefijo(m)) - 1)) return '% Bad mask /' + prefijo(m) + ' for address ' + a.ip;
@@ -222,10 +246,22 @@ const IF = [
   ['spanning-tree bpduguard enable', s => paraCada(s, i => { i.bpduguard = true; })],
   ['ip access-group <n:word> {in|out}', (s, a) => paraCada(s, i => { i.acl[a['in|out']] = a.n; })],
   ['no ip access-group <n:word> {in|out}', (s, a) => paraCada(s, i => { delete i.acl[a['in|out']]; })],
-  ['encapsulation dot1q <v:num> [native]', (s, a) => paraCada(s, i => { if (!i.nombre.includes('.')) return '% Configuring IEEE 802.1Q encapsulation is not permitted on the main interface.'; i.encap = a.v; })],
+  ['encapsulation dot1q <v:num>', (s, a) => paraCada(s, i => { if (!i.nombre.includes('.')) return '% Configuring IEEE 802.1Q encapsulation is not permitted on the main interface.'; i.encap = a.v; i.encapNativa = false; })],
+  ['encapsulation dot1q <v:num> native', (s, a) => paraCada(s, i => { if (!i.nombre.includes('.')) return '% Configuring IEEE 802.1Q encapsulation is not permitted on the main interface.'; i.encap = a.v; i.encapNativa = true; })],
   ['ip ospf <p:num> area <a:num>', (s, a) => paraCada(s, i => { i.ospfArea = a.a; if (!s.ospf) s.ospf = { pid: a.p, rid: null, redes: [], pasivas: new Set(), defaultOriginate: false }; })],
   ['ip ospf network point-to-point', s => paraCada(s, i => { i.p2p = true; })],
   ['ip ospf priority <n:num>', () => {}],
+  ['ip nat {inside|outside}', (s, a) => paraCada(s, i => { i.nat = a['inside|outside']; })],
+  ['no ip nat {inside|outside}', s => paraCada(s, i => { i.nat = null; })],
+  ['ip helper-address <ip:ip>', (s, a) => paraCada(s, i => { i.helper = a.ip; })],
+  ['no ip helper-address [<ip:ip>]', s => paraCada(s, i => { i.helper = null; })],
+  ['duplex {auto|full|half}', (s, a) => paraCada(s, i => { i.duplex = a['auto|full|half']; })],
+  ['speed {auto|10|100|1000}', (s, a) => paraCada(s, i => { i.speed = a['auto|10|100|1000']; })],
+  ['no switchport access vlan', s => paraCada(s, i => { i.accessVlan = 1; })],
+  ['no switchport trunk native vlan', s => paraCada(s, i => { i.nativeVlan = 1; })],
+  ['no switchport trunk allowed vlan', s => paraCada(s, i => { i.allowed = 'all'; })],
+  ['no switchport nonegotiate', s => paraCada(s, i => { i.nonegotiate = false; })],
+  ['no description', s => paraCada(s, i => { i.description = ''; })],
   ['interface <i:iface>', (s, a) => entrarInterfaz(s, a.i)],
   ['interface range <r:ifrange>', (s, a) => { const l = expandirRango(s, a.r); if (typeof l === 'string') return l; s.ctx = l; s.rango = true; }],
   ['do <c:rest>', (s, a) => ejecutarEnModo(s, 'priv', a.c)],
@@ -255,9 +291,10 @@ const ROUTER = [
   ['router-id <r:ip>', (s, a) => { s.ospf.rid = a.r; }],
   ['network <n:ip> <w:ip> area <a:num>', (s, a) => { s.ospf.redes.push({ net: a.n, wc: a.w, area: a.a }); }],
   ['no network <n:ip> <w:ip> area <a:num>', (s, a) => { s.ospf.redes = s.ospf.redes.filter(r => !(r.net === a.n && r.wc === a.w)); }],
-  ['passive-interface <i:iface>', (s, a) => { if (!s.ifs[a.i]) return '% Interface ' + a.i + ' no existe en este equipo.'; s.ospf.pasivas.add(a.i); }],
+  ['passive-interface <i:iface>', (s, a) => { if (!s.ifs[a.i]) return '% Interface ' + a.i + ' no existe en este equipo.'; s.ospf.pasivas.add(a.i); s.ospf.noPasivas?.delete(a.i); }],
   ['passive-interface default', s => { s.ospf.pasivasDefault = true; }],
-  ['no passive-interface <i:iface>', (s, a) => { s.ospf.pasivas.delete(a.i); }],
+  ['no passive-interface <i:iface>', (s, a) => { s.ospf.pasivas.delete(a.i); if (s.ospf.pasivasDefault) (s.ospf.noPasivas ||= new Set()).add(a.i); }],
+  ['no passive-interface default', s => { s.ospf.pasivasDefault = false; s.ospf.noPasivas = new Set(); }],
   ['default-information originate', s => { s.ospf.defaultOriginate = true; }],
   ['auto-cost reference-bandwidth <b:num>', (s, a) => { s.ospf.refBw = a.b; }],
   ['do <c:rest>', (s, a) => ejecutarEnModo(s, 'priv', a.c)],
@@ -271,7 +308,17 @@ const ACL_STD = [
   ['exit', salirA('config')], ['end', s => { s.modo = 'priv'; s.ctx = null; }],
 ];
 
-const MODOS = { user: USER, priv: PRIV, config: CONFIG, if: IF, line: LINE, vlan: VLAN, router: ROUTER, 'acl-std': ACL_STD, 'acl-ext': ACL_STD };
+const DHCP = [
+  ['network <n:ip> <m:ip>', (s, a) => { const n = ipNum(a.n), m = ipNum(a.m); if (!esMascara(m)) return '% Bad mask ' + a.m; if (redDe(n, m) !== n) return '% ' + a.n + ' no es una dirección de red para esa máscara (sería ' + ipStr(redDe(n, m)) + ').'; Object.assign(s.dhcp.pools[s.ctx], { net: a.n, mask: a.m }); }],
+  ['default-router <g:ip>', (s, a) => { s.dhcp.pools[s.ctx].gw = a.g; }],
+  ['dns-server <a:ip> [<b:ip>]', (s, a) => { s.dhcp.pools[s.ctx].dns = [a.a, a.b].filter(Boolean); }],
+  ['domain-name <d:word>', (s, a) => { s.dhcp.pools[s.ctx].dominio = a.d; }],
+  ['lease <r:rest>', () => {}],
+  ['do <c:rest>', (s, a) => ejecutarEnModo(s, 'priv', a.c)],
+  ['exit', salirA('config')], ['end', s => { s.modo = 'priv'; s.ctx = null; }],
+];
+
+const MODOS = { dhcp: DHCP, user: USER, priv: PRIV, config: CONFIG, if: IF, line: LINE, vlan: VLAN, router: ROUTER, 'acl-std': ACL_STD, 'acl-ext': ACL_STD };
 const COMPILADOS = Object.fromEntries(Object.entries(MODOS).map(([m, l]) => [m, l.map(([p, f]) => ({ p, pat: compilar(p), f }))]));
 
 // ---------------------------------------------------------------- ayudantes de configuración
@@ -279,7 +326,7 @@ function entrarInterfaz(s, nombre) {
   if (!s.ifs[nombre]) {
     const base = nombre.split('.')[0];
     if (/^(Vlan|Loopback)\d+$/.test(nombre) || (nombre.includes('.') && s.ifs[base])) {
-      s.ifs[nombre] = { nombre, shutdown: false, ip: null, mask: null, conectada: !nombre.includes('.') || !s.ifs[base].shutdown, mode: null, accessVlan: 1, nativeVlan: 1, allowed: 'all', acl: {}, description: '', ps: null, virtual: true };
+      s.ifs[nombre] = { nombre, shutdown: false, ip: null, mask: null, conectada: true, mode: null, accessVlan: 1, nativeVlan: 1, allowed: 'all', acl: {}, description: '', ps: null, virtual: true };
     } else return `% Invalid input detected: ${nombre} no existe en este equipo. Interfaces disponibles: ${Object.keys(s.ifs).filter(n => !s.ifs[n].virtual).map(abreviar).join(', ')}`;
   }
   s.modo = 'if'; s.ctx = [nombre]; s.rango = nombre.includes('.');
@@ -421,6 +468,36 @@ const ifUp = (s, i) => {
 };
 export const interfazUp = (s, nombre) => !!s.ifs[nombre] && ifUp(s, s.ifs[nombre]);
 
+// Modo operativo de un puerto de switch teniendo en cuenta el otro extremo (DTP). Sin vecino definido, manda la configuración local.
+export function modoOperativo(s, i) {
+  if (typeof i === 'string') i = s.ifs[i];
+  if (!i || i.virtual || i.routed || s.tipo !== 'switch') return null;
+  if (!ifUp(s, i)) return 'down';
+  const v = s.vecinoL2[i.nombre];
+  const local = i.mode || 'dynamic auto';
+  if (local === 'access') return 'access';
+  if (!v) return local === 'trunk' ? 'trunk' : 'access';
+  const remoto = v.mode || 'dynamic auto';
+  if (remoto === 'access') return 'access';
+  if (local === 'trunk') return 'trunk';
+  // Local dinámico: hace falta que el otro negocie (sin nonegotiate) y que alguno de los dos lo pida.
+  if (v.nonegotiate) return 'access';
+  if (local === 'dynamic desirable') return 'trunk';
+  return remoto === 'trunk' || remoto === 'dynamic desirable' ? 'trunk' : 'access';
+}
+const permitida = (set, v) => set === 'all' || set.has(v);
+// ¿Pasa la VLAN v por el trunk del puerto (en los dos extremos)?
+export function vlanPasa(s, nombre, v) {
+  const i = s.ifs[nombre];
+  if (modoOperativo(s, i) !== 'trunk' || !s.vlans[v] || !permitida(i.allowed, v)) return false;
+  const r = s.vecinoL2[nombre];
+  if (!r) return true;
+  if (!permitida(r.allowed ? new Set(r.allowed) : 'all', v) || (r.vlans && !r.vlans.includes(v))) return false;
+  const nativaR = r.native ?? 1;
+  if ((v === i.nativeVlan) !== (v === nativaR)) return false; // nativa distinta: esa VLAN se mezcla
+  return true;
+}
+
 function conectadas(s) {
   return Object.values(s.ifs).filter(i => i.ip && ifUp(s, i)).map(i => ({ i, net: redDe(ipNum(i.ip), ipNum(i.mask)), mask: ipNum(i.mask) }));
 }
@@ -431,7 +508,7 @@ export function vecinosOspf(s) {
     const i = s.ifs[v.interfaz];
     if (!i || !i.ip || !ifUp(s, i)) return false;
     if (!enRed(ipNum(v.ip), ipNum(i.ip), ipNum(i.mask))) return false;
-    if (s.ospf.pasivas.has(i.nombre) || s.ospf.pasivasDefault) return false;
+    if (s.ospf.pasivas.has(i.nombre) || (s.ospf.pasivasDefault && !s.ospf.noPasivas?.has(i.nombre))) return false;
     const area = i.ospfArea ?? s.ospf.redes.find(r => wcMatch(ipNum(i.ip), ipNum(r.net), ipNum(r.wc)))?.area;
     return area != null && area === (v.area ?? 0);
   });
@@ -478,7 +555,9 @@ function ping(s, destino, traza = false) {
     if (s.tipo === 'switch' && !s.ipRouting) {
       const svi = conectadas(s).find(c => enRed(d, c.net, c.mask));
       const gw = s.defaultGateway && conectadas(s).find(c => enRed(ipNum(s.defaultGateway), c.net, c.mask));
-      ok = !!(svi && s.hosts.some(h => h.ip === destino)) || !!(gw && s.hosts.some(h => h.ip === destino && h.remoto));
+      // Un equipo conectado a un puerto concreto solo responde si ese puerto está activo y en la VLAN de la SVI.
+      const enSuPuerto = h => !h.puerto || hostsEnPuertos(s).some(x => x.ip === h.ip && x.activo && svi && x.vlan === +String(svi.i.nombre).replace('Vlan', ''));
+      ok = !!(svi && s.hosts.some(h => h.ip === destino && !h.remoto && enSuPuerto(h))) || !!(gw && s.hosts.some(h => h.ip === destino && h.remoto));
     } else {
       const r = buscarRuta(s, destino);
       if (!r) motivo = 'sin ruta';
@@ -507,7 +586,7 @@ function showIpIntBrief(s) {
   });
   return [pad('Interface', 27) + pad('IP-Address', 16) + 'OK? Method Status                Protocol', ...filas].join('\n');
 }
-function puertosVlan(s, v) { return Object.values(s.ifs).filter(i => !i.virtual && !i.routed && i.mode !== 'trunk' && i.accessVlan === v).map(i => abreviar(i.nombre)); }
+function puertosVlan(s, v) { return Object.values(s.ifs).filter(i => !i.virtual && !i.routed && modoOperativo(s, i) !== 'trunk' && i.accessVlan === v).map(i => abreviar(i.nombre)); }
 function showVlan(s) {
   if (s.tipo !== 'switch') return '% Ambiguous command:  "show vlan"';
   const lines = ['VLAN Name                             Status    Ports', '---- -------------------------------- --------- -------------------------------'];
@@ -521,11 +600,13 @@ function showVlan(s) {
 }
 const listaVlans = set => { if (set === 'all') return '1-4094'; const a = [...set].sort((x, y) => x - y); const r = []; for (let k = 0; k < a.length; k++) { let j = k; while (j + 1 < a.length && a[j + 1] === a[j] + 1) j++; r.push(j > k ? `${a[k]}-${a[j]}` : `${a[k]}`); k = j; } return r.join(',') || 'none'; };
 function showTrunk(s) {
-  const t = Object.values(s.ifs).filter(i => i.mode === 'trunk' && ifUp(s, i));
+  const t = Object.values(s.ifs).filter(i => modoOperativo(s, i) === 'trunk');
   if (!t.length) return '';
-  return ['Port        Mode             Encapsulation  Status        Native vlan', ...t.map(i => pad(abreviar(i.nombre), 12) + pad('on', 17) + pad('802.1q', 15) + pad('trunking', 14) + i.nativeVlan), '',
+  const avisos = t.filter(i => s.vecinoL2[i.nombre] && (s.vecinoL2[i.nombre].native ?? 1) !== i.nativeVlan).map(i => `%CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch discovered on ${i.nombre} (${i.nativeVlan}), with ${s.vecinoL2[i.nombre].nombre || 'SW2'} ${s.vecinoL2[i.nombre].puerto || i.nombre} (${s.vecinoL2[i.nombre].native ?? 1}).`);
+  const modoTxt = i => (i.mode === 'trunk' ? 'on' : i.mode === 'dynamic desirable' ? 'desirable' : 'auto');
+  return ['Port        Mode             Encapsulation  Status        Native vlan', ...t.map(i => pad(abreviar(i.nombre), 12) + pad(modoTxt(i), 17) + pad('802.1q', 15) + pad('trunking', 14) + i.nativeVlan), '',
     'Port        Vlans allowed on trunk', ...t.map(i => pad(abreviar(i.nombre), 12) + listaVlans(i.allowed)), '',
-    'Port        Vlans allowed and active in management domain', ...t.map(i => pad(abreviar(i.nombre), 12) + listaVlans(new Set([...(i.allowed === 'all' ? Object.keys(s.vlans).map(Number) : i.allowed)].filter(v => s.vlans[v]))))].join('\n');
+    'Port        Vlans allowed and active in management domain', ...t.map(i => pad(abreviar(i.nombre), 12) + listaVlans(new Set([...(i.allowed === 'all' ? Object.keys(s.vlans).map(Number) : i.allowed)].filter(v => s.vlans[v])))), ...(avisos.length ? ['', ...avisos] : [])].join('\n');
 }
 function showIpRoute(s) {
   const rs = rutas(s).sort((a, b) => a.net - b.net || a.mask - b.mask);
@@ -550,7 +631,7 @@ function showOspfNeighbor(s) {
 }
 function showIpProtocols(s) {
   if (!s.ospf) return '*** IP Routing is NSF aware ***';
-  return `Routing Protocol is "ospf ${s.ospf.pid}"\n  Router ID ${rid(s)}\n  Routing for Networks:\n${s.ospf.redes.map(r => `    ${r.net} ${r.wc} area ${r.area}`).join('\n')}\n  Passive Interface(s):\n${[...s.ospf.pasivas].map(p => '    ' + p).join('\n')}\n  Distance: (default is 110)`;
+  return `Routing Protocol is "ospf ${s.ospf.pid}"\n  Router ID ${rid(s)}\n  Routing for Networks:\n${s.ospf.redes.map(r => `    ${r.net} ${r.wc} area ${r.area}`).join('\n')}\n  Passive Interface(s):\n${s.ospf.pasivasDefault ? Object.keys(s.ifs).filter(n => s.ifs[n].ip && !s.ospf.noPasivas?.has(n)).map(p => '    ' + p).join('\n') : [...s.ospf.pasivas].map(p => '    ' + p).join('\n')}\n  Distance: (default is 110)`;
 }
 function showAcl(s) {
   return Object.entries(s.acls).map(([n, a]) => `${a.tipo === 'std' ? 'Standard' : 'Extended'} IP access list ${n}\n` + a.reglas.map(r => `    ${r.seq} ${r.accion} ${r.texto.replace(/^(\S+)\s+0\.0\.0\.0$/, 'host $1')}`).join('\n')).join('\n') || '';
@@ -560,6 +641,132 @@ function showPortSecurity(s, nombre) {
   if (!i) return '% Interfaz no válida';
   if (!i.ps || i.ps.off) return `Port Security              : Disabled`;
   return `Port Security              : Enabled\nPort Status                : Secure-up\nViolation Mode             : ${i.ps.violation[0].toUpperCase() + i.ps.violation.slice(1)}\nAging Time                 : 0 mins\nMaximum MAC Addresses      : ${i.ps.max}\nTotal MAC Addresses        : ${i.ps.sticky ? 1 : 0}\nSticky MAC Addresses       : ${i.ps.sticky ? 1 : 0}\nSecurity Violation Count   : 0`;
+}
+
+const macDe = (k) => '0050.56a' + (k % 10) + '.' + (1000 + k * 37).toString(16).padStart(4, '0').slice(-4);
+function showIfStatus(s) {
+  if (s.tipo !== 'switch') return '% Este comando es de switch. En un router usa show ip interface brief.';
+  const filas = Object.values(s.ifs).filter(i => !i.virtual).sort((a, b) => a.nombre.localeCompare(b.nombre, 'en', { numeric: true })).map(i => {
+    const st = i.errDisabled ? 'err-disabled' : i.shutdown ? 'disabled' : !i.conectada ? 'notconnect' : 'connected';
+    const op = modoOperativo(s, i);
+    const vlan = i.routed ? 'routed' : op === 'trunk' ? 'trunk' : String(i.accessVlan);
+    const dup = i.duplex === 'auto' ? (st === 'connected' ? 'a-full' : 'auto') : i.duplex;
+    const spd = i.speed === 'auto' ? (st === 'connected' ? (i.nombre.startsWith('Gig') ? 'a-1000' : 'a-100') : 'auto') : i.speed;
+    return pad(abreviar(i.nombre), 10) + pad((i.description || '').slice(0, 18), 19) + pad(st, 13) + pad(vlan, 11) + pad(dup, 7) + pad(spd, 7) + (i.nombre.startsWith('Gig') ? '10/100/1000BaseTX' : '10/100BaseTX');
+  });
+  return [pad('Port', 10) + pad('Name', 19) + pad('Status', 13) + pad('Vlan', 11) + pad('Duplex', 7) + pad('Speed', 7) + 'Type', ...filas].join('\n');
+}
+function showInterfaz(s, nombre) {
+  const i = s.ifs[nombre];
+  if (!i) return `% Invalid input detected: ${nombre} no existe en este equipo.`;
+  const up = ifUp(s, i);
+  const estado = i.errDisabled ? 'down (err-disabled)' : i.shutdown ? 'administratively down' : up ? 'up' : 'down';
+  const L = [`${nombre} is ${estado}, line protocol is ${up ? 'up' : 'down'}${i.errDisabled ? ' (err-disabled)' : ''}`];
+  L.push(`  Hardware is ${nombre.startsWith('Vlan') ? 'EtherSVI' : nombre.startsWith('Loop') ? 'Loopback' : 'Gigabit Ethernet'}, address is ${macDe(nombre.length * 7 + (parseInt(nombre.replace(/\D/g, '').slice(-2), 10) || 0))}`);
+  if (i.description) L.push('  Description: ' + i.description);
+  if (i.ip) L.push(`  Internet address is ${i.ip}/${prefijo(ipNum(i.mask))}`);
+  L.push('  MTU 1500 bytes, BW ' + (nombre.startsWith('Fast') ? '100000' : '1000000') + ' Kbit/sec, DLY 10 usec,');
+  if (!nombre.startsWith('Vlan') && !nombre.startsWith('Loop')) {
+    const dup = i.duplex === 'auto' ? 'Full-duplex' : i.duplex === 'full' ? 'Full-duplex' : 'Half-duplex';
+    L.push(`  ${dup}, ${i.speed === 'auto' ? (nombre.startsWith('Fast') ? '100Mb/s' : '1000Mb/s') : i.speed + 'Mb/s'}, media type is 10/100/1000BaseTX`);
+    const v = s.vecinoL2[nombre];
+    const choque = v?.duplex && i.duplex !== 'auto' && v.duplex !== i.duplex;
+    L.push(`  ${up ? (choque ? '1873' : '0') : '0'} input errors, ${up && choque ? '1520' : '0'} CRC, 0 frame, 0 overrun, 0 ignored`);
+    L.push(`  0 output errors, ${up && choque ? '412' : '0'} collisions, ${up && choque ? '389 late collision, ' : ''}0 interface resets`);
+  }
+  return L.join('\n');
+}
+function showSwitchport(s, nombre) {
+  const i = s.ifs[nombre];
+  if (!i) return `% Invalid input detected: ${nombre} no existe en este equipo.`;
+  if (s.tipo !== 'switch' || i.virtual || i.routed) return `Name: ${abreviar(nombre)}\nSwitchport: Disabled`;
+  const op = modoOperativo(s, i);
+  const adm = i.mode === 'trunk' ? 'trunk' : i.mode === 'access' ? 'static access' : i.mode;
+  return [`Name: ${abreviar(nombre)}`, 'Switchport: Enabled', `Administrative Mode: ${adm}`, `Operational Mode: ${op === 'trunk' ? 'trunk' : op === 'down' ? 'down' : 'static access'}`,
+    'Administrative Trunking Encapsulation: dot1q', `Negotiation of Trunking: ${i.nonegotiate ? 'Off' : 'On'}`,
+    `Access Mode VLAN: ${i.accessVlan} (${s.vlans[i.accessVlan] || 'Inactive'})`, `Trunking Native Mode VLAN: ${i.nativeVlan} (${s.vlans[i.nativeVlan] || 'Inactive'})`,
+    `Voice VLAN: ${i.voiceVlan || 'none'}`, `Trunking VLANs Enabled: ${i.allowed === 'all' ? 'ALL' : listaVlans(i.allowed)}`].join('\n');
+}
+// Equipos finales conectados a puertos del switch (definidos por el laboratorio con puerto y MAC).
+function hostsEnPuertos(s) {
+  return s.hosts.filter(h => h.puerto && s.ifs[h.puerto]).map(h => {
+    const i = s.ifs[h.puerto];
+    const op = modoOperativo(s, i);
+    return { ...h, activo: op === 'access' || op === 'trunk', vlan: op === 'trunk' ? (h.vlan ?? i.nativeVlan) : i.accessVlan };
+  });
+}
+function showMac(s) {
+  if (s.tipo !== 'switch') return '% Este comando es de switch.';
+  const filas = hostsEnPuertos(s).filter(h => h.activo && s.vlans[h.vlan]).map(h => pad(' ' + h.vlan, 9) + pad(h.mac, 19) + pad('DYNAMIC', 13) + abreviar(h.puerto));
+  return ['          Mac Address Table', '-------------------------------------------', '', 'Vlan    Mac Address       Type        Ports', '----    -----------       --------    -----', ...filas, `Total Mac Addresses for this criterion: ${filas.length}`].join('\n');
+}
+function showCdp(s) {
+  const filas = s.cdp.filter(c => s.ifs[c.local] && ifUp(s, s.ifs[c.local])).map(c => pad(c.id, 17) + pad(abreviar(c.local), 18) + pad('163', 9) + pad(c.capacidad || 'R S I', 12) + pad(c.plataforma || 'ISR4321', 10) + c.remoto);
+  return ['Capability Codes: R - Router, T - Trans Bridge, B - Source Route Bridge', '                  S - Switch, H - Host, I - IGMP, r - Repeater, P - Phone', '', 'Device ID        Local Intrfce     Holdtme  Capability  Platform  Port ID', ...filas, '', `Total cdp entries displayed : ${filas.length}`].join('\n');
+}
+function showArp(s) {
+  const filas = [];
+  for (const c of conectadas(s)) {
+    filas.push(`Internet  ${pad(c.i.ip, 17)}-          ${pad(macDe(ipNum(c.i.ip) % 97), 16)}ARPA   ${c.i.nombre}`);
+    for (const h of s.hosts) if (!h.remoto && enRed(ipNum(h.ip), c.net, c.mask) && h.visto !== false) filas.push(`Internet  ${pad(h.ip, 17)}${pad('2', 11)}${pad(h.mac || macDe(ipNum(h.ip) % 89), 16)}ARPA   ${c.i.nombre}`);
+  }
+  return ['Protocol  Address          Age (min)  Hardware Addr   Type   Interface', ...filas].join('\n');
+}
+// ---------------------------------------------------------------- DHCP y NAT
+const excluida = (s, ip) => s.dhcp.excluidas.some(([a, b]) => ip >= ipNum(a) && ip <= ipNum(b));
+// Asigna direcciones a los clientes DHCP del laboratorio (hosts con dhcp: 'nombre de la red' y la interfaz por la que llegan).
+export function concesiones(s) {
+  const out = [];
+  for (const h of s.hosts.filter(h => h.dhcp)) {
+    const i = s.ifs[h.dhcp];
+    if (!i || !i.ip || !ifUp(s, i)) continue;
+    const redCliente = { net: redDe(ipNum(i.ip), ipNum(i.mask)), mask: ipNum(i.mask) };
+    const pool = Object.entries(s.dhcp.pools).find(([, p]) => p.net && ipNum(p.net) === redCliente.net && ipNum(p.mask) === redCliente.mask);
+    if (!pool) continue;
+    const [nombre, p] = pool;
+    const usadas = new Set([...out.map(o => o.ipN), ...Object.values(s.ifs).filter(o => o.ip).map(o => ipNum(o.ip))]);
+    const tam = 2 ** (32 - prefijo(redCliente.mask));
+    let ip = null;
+    for (let k = 1; k < tam - 1; k++) { const c = redCliente.net + k; if (!excluida(s, c) && !usadas.has(c)) { ip = c; break; } }
+    if (ip == null) continue;
+    out.push({ host: h, pool: nombre, ipN: ip, ip: ipStr(ip), gw: p.gw, dns: p.dns });
+  }
+  return out;
+}
+function showDhcpPool(s) {
+  const e = Object.entries(s.dhcp.pools);
+  if (!e.length) return '';
+  const c = concesiones(s);
+  return e.map(([n, p]) => `Pool ${n} :\n Utilization mark (high/low)    : 100 / 0\n Total addresses                : ${p.net ? 2 ** (32 - prefijo(ipNum(p.mask))) - 2 : 0}\n Leased addresses               : ${c.filter(x => x.pool === n).length}\n Network                        : ${p.net ? p.net + ' / ' + p.mask : '(sin definir)'}\n Default router                 : ${p.gw || '(sin definir)'}\n DNS server                     : ${p.dns.join(' ') || '(sin definir)'}`).join('\n\n');
+}
+function showDhcpBinding(s) {
+  const c = concesiones(s);
+  return ['Bindings from all pools not associated with VRF:', 'IP address      Client-ID/              Lease expiration        Type', '                Hardware address', ...c.map(x => pad(x.ip, 16) + pad('01' + (x.host.mac || macDe(x.ipN % 91)).replace(/\./g, ''), 24) + pad('Nov 13 2026 09:00 AM', 24) + 'Automatic')].join('\n');
+}
+// Traducciones NAT activas para los equipos de dentro (hosts con nat: true) que salen a Internet.
+export function traduccionesNat(s) {
+  const out = [];
+  const dentro = Object.values(s.ifs).filter(i => i.nat === 'inside' && i.ip && ifUp(s, i));
+  const fuera = Object.values(s.ifs).filter(i => i.nat === 'outside' && i.ip && ifUp(s, i));
+  if (!dentro.length || !fuera.length) return out;
+  for (const e of s.nat.estaticas) out.push({ tipo: 'static', local: e.local, global: e.global });
+  const rDefecto = buscarRuta(s, '8.8.8.8');
+  if (!rDefecto) return out;
+  for (const regla of s.nat.listas) {
+    const salida = s.ifs[regla.iface];
+    if (!salida || salida.nat !== 'outside' || !salida.ip || !ifUp(s, salida) || rDefecto.iface !== salida.nombre) continue;
+    let puerto = 1024;
+    for (const h of s.hosts.filter(h => h.nat && !s.nat.estaticas.some(e => e.local === h.ip))) {
+      if (!dentro.some(i => enRed(ipNum(h.ip), redDe(ipNum(i.ip), ipNum(i.mask)), ipNum(i.mask)))) continue;
+      if (!s.acls[regla.lista] || evaluarAcl(s, regla.lista, { src: h.ip, dst: '8.8.8.8' }).accion !== 'permit') continue;
+      out.push({ tipo: 'pat', local: h.ip, global: salida.ip, puerto: puerto++ });
+    }
+  }
+  return out;
+}
+function showNat(s) {
+  const t = traduccionesNat(s);
+  return ['Pro  Inside global         Inside local          Outside local         Outside global', ...t.map(x => x.tipo === 'static' ? `---  ${pad(x.global, 22)}${pad(x.local, 22)}---                   ---` : `udp  ${pad(x.global + ':' + x.puerto, 22)}${pad(x.local + ':' + (50000 + x.puerto), 22)}${pad('8.8.8.8:53', 22)}8.8.8.8:53`)].join('\n');
 }
 
 export function runningConfig(s) {
@@ -574,12 +781,14 @@ export function runningConfig(s) {
   if (s.sshVersion === 2) L.push('ip ssh version 2');
   if (s.ipv6Routing) L.push('ipv6 unicast-routing');
   if (s.stpMode) L.push('spanning-tree mode ' + s.stpMode);
+  for (const [a, b] of s.dhcp.excluidas) L.push(`ip dhcp excluded-address ${a}${b !== a ? ' ' + b : ''}`);
+  for (const [n, p] of Object.entries(s.dhcp.pools)) { L.push('!', 'ip dhcp pool ' + n); if (p.net) L.push(` network ${p.net} ${p.mask}`); if (p.gw) L.push(' default-router ' + p.gw); if (p.dns.length) L.push(' dns-server ' + p.dns.join(' ')); if (p.dominio) L.push(' domain-name ' + p.dominio); }
   L.push('!');
   for (const v of Object.keys(s.vlans).map(Number).filter(v => v !== 1).sort((a, b) => a - b)) L.push(`vlan ${v}`, ` name ${s.vlans[v]}`, '!');
   for (const i of Object.values(s.ifs).sort((a, b) => a.nombre.localeCompare(b.nombre, 'en', { numeric: true }))) {
     L.push('interface ' + i.nombre);
     if (i.description) L.push(' description ' + i.description);
-    if (i.encap) L.push(' encapsulation dot1Q ' + i.encap);
+    if (i.encap) L.push(' encapsulation dot1Q ' + i.encap + (i.encapNativa ? ' native' : ''));
     if (i.routed) L.push(' no switchport');
     if (i.mode === 'access') { if (i.accessVlan !== 1) L.push(' switchport access vlan ' + i.accessVlan); L.push(' switchport mode access'); }
     if (i.voiceVlan) L.push(' switchport voice vlan ' + i.voiceVlan);
@@ -591,6 +800,10 @@ export function runningConfig(s) {
     if (i.portfast) L.push(' spanning-tree portfast');
     if (i.bpduguard) L.push(' spanning-tree bpduguard enable');
     if (i.ip) L.push(` ip address ${i.ip} ${i.mask}`); else if (s.tipo === 'router' || i.virtual || i.routed) L.push(' no ip address');
+    if (i.helper) L.push(' ip helper-address ' + i.helper);
+    if (i.nat) L.push(' ip nat ' + i.nat);
+    if (i.duplex && i.duplex !== 'auto') L.push(' duplex ' + i.duplex);
+    if (i.speed && i.speed !== 'auto') L.push(' speed ' + i.speed);
     for (const d of ['in', 'out']) if (i.acl?.[d]) L.push(` ip access-group ${i.acl[d]} ${d}`);
     if (i.ospfArea != null) L.push(` ip ospf ${s.ospf?.pid || 1} area ${i.ospfArea}`);
     if (i.p2p) L.push(' ip ospf network point-to-point');
@@ -603,10 +816,13 @@ export function runningConfig(s) {
     if (s.ospf.refBw) L.push(' auto-cost reference-bandwidth ' + s.ospf.refBw);
     if (s.ospf.pasivasDefault) L.push(' passive-interface default');
     for (const p of s.ospf.pasivas) L.push(' passive-interface ' + p);
+    if (s.ospf.pasivasDefault) for (const p of s.ospf.noPasivas || []) L.push(' no passive-interface ' + p);
     for (const r of s.ospf.redes) L.push(` network ${r.net} ${r.wc} area ${r.area}`);
     if (s.ospf.defaultOriginate) L.push(' default-information originate');
     L.push('!');
   }
+  for (const n of s.nat.listas) L.push(`ip nat inside source list ${n.lista} interface ${n.iface} overload`);
+  for (const n of s.nat.estaticas) L.push(`ip nat inside source static ${n.local} ${n.global}`);
   if (s.defaultGateway) L.push('ip default-gateway ' + s.defaultGateway);
   for (const r of s.rutas) L.push(`ip route ${r.net} ${r.mask} ${[r.iface, r.nh].filter(Boolean).join(' ')}${r.ad !== 1 ? ' ' + r.ad : ''}`);
   for (const [n, a] of Object.entries(s.acls)) {
@@ -632,7 +848,7 @@ function tipo7(t) { return [...t].map((c, k) => ((c.charCodeAt(0) ^ (k * 7 + 3))
 
 // ---------------------------------------------------------------- intérprete
 export function prompt(s) {
-  const suf = { user: '>', priv: '#', config: '(config)#', if: s.rango && s.ctx?.length > 1 ? '(config-if-range)#' : s.ctx?.[0]?.includes('.') ? '(config-subif)#' : '(config-if)#', line: '(config-line)#', vlan: '(config-vlan)#', router: '(config-router)#', 'acl-std': '(config-std-nacl)#', 'acl-ext': '(config-ext-nacl)#' }[s.modo];
+  const suf = { user: '>', priv: '#', config: '(config)#', if: s.rango && s.ctx?.length > 1 ? '(config-if-range)#' : s.ctx?.[0]?.includes('.') ? '(config-subif)#' : '(config-if)#', line: '(config-line)#', vlan: '(config-vlan)#', router: '(config-router)#', 'acl-std': '(config-std-nacl)#', 'acl-ext': '(config-ext-nacl)#', dhcp: '(dhcp-config)#' }[s.modo];
   return s.hostname + suf;
 }
 
@@ -690,6 +906,34 @@ export function ejecutar(s, linea) {
   s.historial.push(limpia.trim());
   const salida = interpretar(s, limpia);
   return { salida, prompt: prompt(s) };
+}
+
+// Autocompletado con Tab, como en IOS: completa la última palabra si solo hay una opción posible.
+export function completar(s, linea) {
+  const toks = linea.trimStart().split(/\s+/);
+  const ultima = (toks.pop() || '').toLowerCase();
+  const cand = new Set();
+  for (const c of COMPILADOS[s.modo]) {
+    let pi = 0, ok = true;
+    for (const t of toks) {
+      while (pi < c.pat.length && c.pat[pi].opt && !(c.pat[pi].k === 'lit' ? c.pat[pi].v.startsWith(t.toLowerCase()) : c.pat[pi].k === 'alt' ? c.pat[pi].alts.some(a => a.startsWith(t.toLowerCase())) : true)) pi++;
+      const p = c.pat[pi];
+      if (!p) { ok = false; break; }
+      if (p.k === 'lit' && !p.v.startsWith(t.toLowerCase())) { ok = false; break; }
+      if (p.k === 'alt' && !p.alts.some(a => a.startsWith(t.toLowerCase()))) { ok = false; break; }
+      if (p.k === 'param' && (p.type === 'rest' || p.type === 'ifrange')) { ok = false; break; }
+      pi++;
+    }
+    if (!ok) continue;
+    for (let k = pi; k < c.pat.length; k++) {
+      const p = c.pat[k];
+      if (p.k === 'lit' && p.v.startsWith(ultima)) cand.add(p.v);
+      if (p.k === 'alt') p.alts.filter(a => a.startsWith(ultima)).forEach(a => cand.add(a));
+      if (!p.opt) break;
+    }
+  }
+  if (cand.size !== 1 || !ultima) return null;
+  return [...toks, [...cand][0]].join(' ') + ' ';
 }
 
 export function ayuda(s) {

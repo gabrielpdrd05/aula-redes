@@ -5,7 +5,7 @@ dominio: Introducción
 peso: 0
 descripcion: Cómo funciona el curso, qué es el CCNA y cómo montar tu laboratorio para practicar desde el primer día.
 ---
-=== m0-curso | Cómo aprovechar este curso | 8
+=== m0-curso | Cómo aprovechar este curso | 8 | 1
 Bienvenido a **Aula de Redes**. Este curso te lleva desde cero hasta el nivel que pide el examen **Cisco CCNA 200-301**, la certificación de redes más solicitada en las ofertas de empleo de Latinoamérica y España. Además incluye un módulo de **bases de datos** y otro de **carrera profesional** para que llegues preparado a tu primera entrevista.
 
 ## Cómo está organizado
@@ -58,7 +58,7 @@ Al completar una lección, aprobar su cuestionario o terminar un laboratorio, tu
 = El examen de Cisco no permite volver atrás, por eso conviene llegar con práctica de tiempo en el simulador de examen.
 :::
 
-=== m0-laboratorio | Monta tu laboratorio | 10
+=== m0-laboratorio | Monta tu laboratorio | 10 | 1
 Las redes se aprenden tocando equipos. No hace falta comprar nada: hay herramientas gratuitas que simulan routers y switches Cisco.
 
 ## Las herramientas

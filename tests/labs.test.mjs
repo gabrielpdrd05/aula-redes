@@ -96,3 +96,56 @@ test('reparto del simulacro según el peso de cada dominio', () => {
   assert.equal(poco.m6, 2);
   assert.equal(Object.values(poco).reduce((a, b) => a + b), 50);
 });
+
+// ---------------------------------------------------------------- simulador ampliado
+import { completar, modoOperativo, vlanPasa } from '../js/labs/ios.js';
+import { COMANDOS, CATEGORIAS, MODOS } from '../js/comandos-datos.js';
+
+test('averías: ninguna tarea empieza resuelta y todas tienen pistas', () => {
+  for (const [id, lab] of Object.entries(LABS).filter(([, l]) => l.tipo === 'averia')) {
+    const s = nuevoEquipo(lab.equipo);
+    lab.tareas.forEach(t => assert.ok(!t.ok(s, runningConfig), `${id}: «${t.texto}» ya está hecha al empezar`));
+    assert.ok(lab.pistas?.length >= 2, id + ' sin pistas');
+  }
+});
+
+test('todos los laboratorios tienen nivel y tipo', () => {
+  for (const [id, lab] of Object.entries(LABS)) {
+    assert.ok(['principiante', 'intermedio', 'avanzado'].includes(lab.nivel), id);
+    assert.ok(['guiado', 'averia'].includes(lab.tipo), id);
+  }
+});
+
+test('DTP: el trunk se forma (o no) como en un Cisco real', () => {
+  const eq = (local, remoto) => nuevoEquipo({ tipo: 'switch', interfaces: [{ nombre: 'GigabitEthernet0/1' }], vecinoL2: { 'GigabitEthernet0/1': remoto }, estadoInicial: s => { s.ifs['GigabitEthernet0/1'].mode = local; } });
+  assert.equal(modoOperativo(eq('dynamic auto', { mode: 'dynamic auto' }), 'GigabitEthernet0/1'), 'access');
+  assert.equal(modoOperativo(eq('dynamic auto', { mode: 'dynamic desirable' }), 'GigabitEthernet0/1'), 'trunk');
+  assert.equal(modoOperativo(eq('dynamic desirable', { mode: 'trunk', nonegotiate: true }), 'GigabitEthernet0/1'), 'access');
+  assert.equal(modoOperativo(eq('trunk', { mode: 'trunk', nonegotiate: true }), 'GigabitEthernet0/1'), 'trunk');
+  const s = eq('trunk', { mode: 'trunk', native: 99 });
+  s.vlans[10] = 'A'; s.vlans[99] = 'N';
+  assert.equal(vlanPasa(s, 'GigabitEthernet0/1', 10), true);
+  assert.equal(vlanPasa(s, 'GigabitEthernet0/1', 99), false, 'nativa distinta');
+});
+
+test('autocompletado con Tab', () => {
+  const s = nuevoEquipo({ tipo: 'router', interfaces: [{ nombre: 'GigabitEthernet0/0' }] });
+  s.modo = 'priv';
+  assert.equal(completar(s, 'conf'), 'configure ');
+  assert.equal(completar(s, 'show ip int'), 'show ip interface ');
+  assert.equal(completar(s, 'sh'), 'show ');
+  assert.equal(completar(s, 'c'), null, 'configure / copy / clear: ambiguo');
+});
+
+test('guía de comandos: categorías, modos, niveles y laboratorios válidos', () => {
+  const cats = new Set(CATEGORIAS.map(c => c.id));
+  assert.ok(COMANDOS.length >= 70);
+  for (const c of COMANDOS) {
+    assert.ok(cats.has(c.cat), c.cmd);
+    assert.ok(MODOS[c.modo], c.cmd);
+    assert.ok([1, 2, 3].includes(c.nivel), c.cmd);
+    assert.ok(c.que.length > 20 && c.ej.length, c.cmd);
+    if (c.lab) assert.ok(LABS[c.lab], `${c.cmd}: el laboratorio ${c.lab} no existe`);
+  }
+  for (const cat of cats) assert.ok(COMANDOS.some(c => c.cat === cat), 'categoría vacía: ' + cat);
+});

@@ -14,7 +14,7 @@ Formato de cada módulo:
     peso: 20
     descripcion: ...
     ---
-    === m1-redes | ¿Qué es una red? | 12
+    === m1-redes | ¿Qué es una red? | 12 | 1      (el último número es el nivel: 1 principiante, 2 intermedio, 3 avanzado)
     Texto en Markdown (párrafos, listas, **negrita**, *cursiva*, `código`, [enlaces](https://...), tablas,
     bloques ``` con lenguaje), avisos (::: nota / ::: examen / ::: cuidado ... :::), elementos interactivos
     ([[anim:arp]], [[lab:subnetting]], [[cli:vlan]], [[sql:select]]) y un cuestionario:
@@ -42,11 +42,12 @@ OUT = ROOT / "data"
 KNOWN = {
     "anim": {"encapsulacion", "switch", "arp", "tcp", "dhcp", "dns", "vlan", "stp", "enrutamiento", "nat", "acl", "ospf"},
     "lab": {"subnetting", "binario", "vlsm"},
-    "cli": {"basico", "vlan", "trunk", "estatica", "ospf", "acl", "ssh", "portsecurity"},
+    "cli": {"basico", "vlan", "trunk", "estatica", "ospf", "acl", "ssh", "portsecurity", "router", "intervlan", "dhcp", "nat",
+            "averia-puerto", "averia-trunk", "averia-gestion", "averia-ruta", "averia-ospf", "averia-ssh", "averia-acl", "averia-duplex"},
     "sql": {"select", "join", "agregacion", "modificar", "inventario"},
 }
 CALLOUTS = {"nota", "examen", "cuidado", "practica", "comando"}
-LESSON_RE = re.compile(r"^===\s*([a-z0-9-]+)\s*\|\s*(.+?)\s*\|\s*(\d+)\s*$")
+LESSON_RE = re.compile(r"^===\s*([a-z0-9-]+)\s*\|\s*(.+?)\s*\|\s*(\d+)\s*\|\s*([123])\s*$")
 INLINE_RE = re.compile(r"(\*\*.+?\*\*|`[^`]+`|\[[^\]]+\]\((?:https://|\./|#)[^)\s]+\)|(?<![\w*])\*[^*\s][^*]*?\*(?!\w))")
 
 
@@ -254,10 +255,12 @@ def parse_module(path: Path) -> dict:
         lm = LESSON_RE.match(line.strip())
         if lm:
             close()
-            lid, title, minutes = lm.groups()
+            lid, title, minutes, level = lm.groups()
             if not lid.startswith(meta["id"] + "-"):
                 raise ContentError(f"{path.name}: la lección {lid} debe empezar por '{meta['id']}-'")
-            cur, buf = {"id": lid, "titulo": title, "minutos": int(minutes)}, []
+            cur, buf = {"id": lid, "titulo": title, "minutos": int(minutes), "nivel": int(level)}, []
+        elif line.startswith("==="):
+            raise ContentError(f"{path.name}: cabecera de lección mal formada (=== id | título | minutos | nivel 1-3): {line!r}")
         elif cur is None:
             if line.strip():
                 raise ContentError(f"{path.name}: texto antes de la primera lección: {line!r}")
@@ -288,7 +291,7 @@ def build() -> dict[str, str]:
         mod = {k: m[k] for k in ("id", "titulo", "descripcion", "dominio", "peso")}
         mod["lecciones"] = []
         for l in m["lecciones"]:
-            mod["lecciones"].append({k: l[k] for k in ("id", "titulo", "minutos", "blocks", "quiz")})
+            mod["lecciones"].append({k: l[k] for k in ("id", "titulo", "minutos", "nivel", "blocks", "quiz")})
             buscar.append({"id": l["id"], "modulo": m["id"], "titulo": l["titulo"], "texto": l["texto"]})
             for n, q in enumerate(l["quiz"]):
                 examen.append({"id": f"{l['id']}#{n}", "modulo": m["id"], "dominio": m["dominio"], **q})

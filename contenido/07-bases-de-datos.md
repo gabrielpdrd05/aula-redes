@@ -5,7 +5,7 @@ dominio: Complementario
 peso: 0
 descripcion: Modelo relacional, SQL desde cero (consultas, JOIN, agregaciones, modificaciones), diseño y normalización, índices, transacciones y seguridad, con un laboratorio SQL sobre un inventario de red real.
 ---
-=== m7-intro | ¿Qué es una base de datos? | 12
+=== m7-intro | ¿Qué es una base de datos? | 12 | 1
 Una **base de datos** guarda información de forma organizada para consultarla y modificarla con eficacia. En redes las encontrarás en todas partes: el inventario de equipos, las direcciones IP asignadas (IPAM), los usuarios de RADIUS, los registros de un SIEM, la configuración de Catalyst Center.
 
 ## El modelo relacional
@@ -59,7 +59,7 @@ En el laboratorio de este módulo trabajarás con el inventario de red de una em
 = Bases como InfluxDB están diseñadas para grandes volúmenes de datos con marca de tiempo.
 :::
 
-=== m7-select | SQL I: consultar datos con SELECT | 18
+=== m7-select | SQL I: consultar datos con SELECT | 18 | 1
 **SQL** (Structured Query Language) es el lenguaje estándar para trabajar con bases de datos relacionales. La consulta más importante es `SELECT`.
 
 ## Estructura básica
@@ -141,7 +141,7 @@ LIMIT 3;
 = DESC es descendente; ASC (por defecto) ascendente.
 :::
 
-=== m7-join | SQL II: relacionar tablas con JOIN | 18
+=== m7-join | SQL II: relacionar tablas con JOIN | 18 | 2
 Los datos están repartidos en varias tablas para no repetirlos. **JOIN** las combina usando las claves.
 
 ## INNER JOIN
@@ -215,7 +215,7 @@ ORDER BY sede, d.hostname;
 = Normalmente se compara la clave foránea con la clave primaria.
 :::
 
-=== m7-agregacion | SQL III: contar, sumar y agrupar | 16
+=== m7-agregacion | SQL III: contar, sumar y agrupar | 16 | 2
 Las **funciones de agregación** resumen muchas filas en un valor:
 
 | Función | Devuelve |
@@ -286,7 +286,7 @@ HAVING COUNT(d.id) > 3;
 = Para tener un recuento por sede hay que agrupar por sitio_id.
 :::
 
-=== m7-modificar | Modificar datos y transacciones | 16
+=== m7-modificar | Modificar datos y transacciones | 16 | 2
 ## INSERT, UPDATE y DELETE
 
 ```sql
@@ -348,7 +348,7 @@ Las bases relacionales garantizan las propiedades **ACID**:
 = Atomicidad: todo o nada.
 :::
 
-=== m7-diseno | Diseño: claves, normalización e índices | 18
+=== m7-diseno | Diseño: claves, normalización e índices | 18 | 3
 ## Crear tablas
 
 ```sql
@@ -420,7 +420,7 @@ Indexa las columnas que usas a menudo en `WHERE` y en los `JOIN` (sobre todo las
 = UNIQUE impide valores repetidos en la columna.
 :::
 
-=== m7-seguridad | Seguridad en bases de datos | 16
+=== m7-seguridad | Seguridad en bases de datos | 16 | 3
 ## Inyección SQL
 
 Es una de las vulnerabilidades web más explotadas. Ocurre cuando una aplicación **mete el texto del usuario directamente** en una consulta:
@@ -476,7 +476,7 @@ cursor.execute("SELECT * FROM usuarios WHERE nombre = %s", (usuario,))
 = 3306 es MySQL y 1433, SQL Server.
 :::
 
-=== m7-proyecto | Proyecto: informes sobre el inventario de red | 20
+=== m7-proyecto | Proyecto: informes sobre el inventario de red | 20 | 3
 Es hora de juntar todo. Eres el técnico de redes de la empresa y tu jefe te pide varios informes del inventario. Resuélvelos en el laboratorio: cada consulta se comprueba automáticamente.
 
 1. Lista de los equipos de cada sede con su IP de gestión, ordenada por sede y hostname.

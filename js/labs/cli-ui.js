@@ -2,7 +2,7 @@
 // solas al cumplirse. Al completar todas, el laboratorio queda guardado en el progreso del alumno.
 import { el, toast } from '../core.js';
 import { guardarLab, labHecho, cargar } from '../progreso.js';
-import { nuevoEquipo, ejecutar, prompt, runningConfig } from './ios.js';
+import { nuevoEquipo, ejecutar, prompt, runningConfig, completar } from './ios.js';
 import { LABS } from './ios-labs.js';
 
 export async function montarCli(holder, id) {
@@ -19,6 +19,17 @@ export async function montarCli(holder, id) {
   const btnReset = el('button', { type: 'button', class: 'btn btn-ghost btn-sm' }, 'Reiniciar');
   const btnSol = el('button', { type: 'button', class: 'btn btn-quiet btn-sm' }, 'Ver solución');
   const solucion = el('pre', { class: 'code', hidden: true });
+  const NIVEL = { principiante: 'Nivel 1 · Principiante', intermedio: 'Nivel 2 · Intermedio', avanzado: 'Nivel 3 · Avanzado' };
+  const pistas = lab.pistas || [];
+  let pistasVistas = 0;
+  const listaPistas = el('ol', { class: 'hints' });
+  const btnPista = el('button', { type: 'button', class: 'btn btn-ghost btn-sm' }, 'Dame una pista');
+  btnPista.addEventListener('click', () => {
+    if (pistasVistas >= pistas.length) return;
+    listaPistas.append(el('li', {}, pistas[pistasVistas++]));
+    btnPista.textContent = pistasVistas < pistas.length ? `Otra pista (${pistas.length - pistasVistas})` : 'No hay más pistas';
+    btnPista.disabled = pistasVistas >= pistas.length;
+  });
 
   function escribir(texto, clase) {
     if (texto == null || texto === '') return;
@@ -40,7 +51,7 @@ export async function montarCli(holder, id) {
   function reiniciar() {
     eq = nuevoEquipo(lab.equipo);
     salida.replaceChildren();
-    escribir(`Simulador de Cisco IOS · ${lab.titulo}\nEscribe "?" para ver los comandos disponibles en cada modo. Puedes abreviar (conf t, sh run, int g0/1).\n`);
+    escribir(`Simulador de Cisco IOS · ${lab.titulo}\nEscribe "?" para ver los comandos de cada modo. Puedes abreviar (conf t, sh run, int g0/1) y completar con Tab.\n`);
     promptTxt.textContent = prompt(eq);
     hist = []; pos = 0;
     revisar();
@@ -71,6 +82,8 @@ export async function montarCli(holder, id) {
       revisar();
     } else if (e.key === 'Tab') {
       e.preventDefault();
+      const c = completar(eq, input.value);
+      if (c) input.value = c;
     }
   });
   salida.addEventListener('click', () => input.focus());
@@ -82,10 +95,13 @@ export async function montarCli(holder, id) {
   });
 
   holder.append(el('section', { class: 'lab', 'aria-label': 'Laboratorio: ' + lab.titulo },
-    el('div', { class: 'lab-head' }, el('h3', {}, 'Laboratorio: ' + lab.titulo), progreso),
+    el('div', { class: 'lab-head' }, el('h3', {}, (lab.tipo === 'averia' ? 'Avería: ' : 'Laboratorio: ') + lab.titulo.replace(/^Avería:\s*/, '')), progreso),
+    el('div', { class: 'lab-tags' }, lab.nivel ? el('span', { class: 'badge level-' + lab.nivel }, NIVEL[lab.nivel]) : null, lab.tipo === 'averia' ? el('span', { class: 'badge badge-warn' }, '🔧 Resolución de problemas') : null),
     el('p', { class: 'muted' }, lab.intro),
+    lab.topologia ? el('pre', { class: 'topology', 'aria-label': 'Topología de red' }, lab.topologia) : null,
+    lab.tipo === 'averia' ? el('p', { class: 'small' }, el('strong', {}, 'Método: '), 'primero diagnostica con comandos show (no cambies nada a ciegas), luego arregla y al final verifica.') : null,
     el('div', { class: 'cli-layout' },
       el('div', {}, salida, el('div', { class: 'term-input' }, promptTxt, input)),
-      el('div', {}, el('h4', {}, 'Tareas'), lista, el('div', { class: 'hero-cta' }, btnReset, btnSol), solucion))));
+      el('div', {}, el('h4', {}, 'Tareas'), lista, pistas.length ? el('div', { class: 'hints-box' }, btnPista, listaPistas) : null, el('div', { class: 'hero-cta' }, btnReset, btnSol), solucion))));
   reiniciar();
 }
