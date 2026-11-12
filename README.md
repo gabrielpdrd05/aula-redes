@@ -1,6 +1,6 @@
 # Aula de Redes
 
-Curso interactivo de **redes** (temario completo del **Cisco CCNA 200-301**) y **bases de datos**, desde cero hasta nivel de empleo, con tutor de IA.
+Curso interactivo de **redes** (temario completo del **Cisco CCNA 200-301**) y **bases de datos**, desde cero hasta nivel de empleo, con buscador integrado y tutor de IA opcional.
 
 > No es un curso oficial de Cisco ni otorga certificación: prepara para aprobar el examen oficial.
 
@@ -14,7 +14,8 @@ Curso interactivo de **redes** (temario completo del **Cisco CCNA 200-301**) y *
 | **Entrenadores** | Subnetting, binario y VLSM con ejercicios infinitos y explicación |
 | **Laboratorio SQL** | SQLite en el navegador (WebAssembly) con el inventario de red de una empresa |
 | **297 preguntas** | Cuestionario en cada lección y simulacro de examen ponderado por dominio, con cronómetro |
-| **Tutor con IA (Claude)** | Conoce la lección que estás viendo; explica, pone ejercicios y hace entrevistas de prueba |
+| **Buscador del curso** | Desde cualquier página, encuentra las lecciones y el fragmento que responden a una duda |
+| **Tutor con IA (Claude), opcional** | Desactivado por defecto (la API de Anthropic se paga por uso). Se activa con `"tutorIA": true` en `config.json`; ver la guía |
 | **Cuentas** | Registro con confirmación por correo, verificación en dos pasos, progreso sincronizado |
 
 ## Lenguajes y tecnologías
@@ -48,7 +49,7 @@ python3 -m http.server 8000   # y abre http://localhost:8000
 - Las páginas se editan en `src/paginas/*.html`; `node scripts/paginas.mjs` genera las del directorio raíz con la cabecera, el pie y la CSP.
 - Para activar cuentas y tutor, sigue **[docs/CONFIGURAR.md](docs/CONFIGURAR.md)**.
 
-Sin configurar Supabase la web funciona igualmente en **modo invitado** (progreso guardado en el navegador; el tutor muestra las lecciones relacionadas).
+Sin configurar Supabase la web funciona igualmente en **modo invitado** (progreso guardado en el navegador).
 
 ## Licencias de terceros
 

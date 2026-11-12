@@ -33,7 +33,10 @@ En **Project Settings → API** (o **API Keys**) copia la **Project URL** y la c
 
 Después ejecuta `node scripts/paginas.mjs` (regenera `js/config.js` y añade tu proyecto a la CSP) y sube los cambios. Esa clave es pública por diseño: lo que protege los datos es RLS.
 
-## 4. Desplegar el tutor con IA
+## 4. (Opcional) Activar el tutor con IA
+
+El tutor usa la API de Anthropic, que se paga por uso (aparte de cualquier suscripción a Claude). Sin él, la web usa el buscador del curso. Para activarlo, pon `"tutorIA": true` en `config.json`, ejecuta `node scripts/paginas.mjs` y despliega la función:
+
 
 Con la [CLI de Supabase](https://supabase.com/docs/guides/cli):
 

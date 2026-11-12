@@ -27,7 +27,15 @@ function extracto(texto, pregunta, max) {
   if (texto.length <= max) return texto;
   const q = palabras(pregunta);
   const f = fold(texto);
-  const pos = q.map(w => f.indexOf(w)).filter(i => i >= 0).sort((a, b) => a - b)[0] ?? 0;
+  // La zona con más palabras distintas de la pregunta (y, a igualdad, la primera).
+  let pos = 0, mejor = 0;
+  for (const w of q) {
+    for (let i = f.indexOf(w); i >= 0; i = f.indexOf(w, i + 1)) {
+      const ventana = f.slice(i, i + Math.max(120, max / 2));
+      const n = q.filter(x => ventana.includes(x)).length;
+      if (n > mejor || (n === mejor && i < pos)) { mejor = n; pos = i; }
+    }
+  }
   const ini = Math.max(0, pos - Math.floor(max / 3));
   return (ini ? '…' : '') + texto.slice(ini, ini + max) + '…';
 }
@@ -130,14 +138,17 @@ export function crearTutor({ leccion = null, paginaCompleta = false } = {}) {
   const clave = 'aula:tutor:' + (leccion?.id || 'general');
   let historial = local.get(clave, []).slice(-20);
   let controlador = null;
+  // Sin tutorIA en config.json, el panel funciona como buscador del temario (sin servidor, sin cuenta, sin coste).
+  const ia = CONFIG.tutorIA === true;
+  if (!ia) historial = [];
 
   const mensajesBox = el('div', { class: 'tutor-messages', role: 'log', 'aria-live': 'polite', 'aria-label': 'Conversación con el tutor' });
-  const entrada = el('textarea', { rows: 2, placeholder: leccion ? `Pregunta sobre «${leccion.titulo}» o cualquier tema de redes…` : 'Pregunta lo que quieras sobre redes o bases de datos…', 'aria-label': 'Tu pregunta para el tutor', maxlength: 4000 });
-  const enviar = el('button', { type: 'submit', class: 'btn btn-primary' }, 'Enviar');
+  const entrada = el('textarea', { rows: 2, placeholder: !ia ? 'Escribe tu duda, por ejemplo: ¿qué es la VLAN nativa?' : leccion ? `Pregunta sobre «${leccion.titulo}» o cualquier tema de redes…` : 'Pregunta lo que quieras sobre redes o bases de datos…', 'aria-label': 'Tu pregunta para el tutor', maxlength: 4000 });
+  const enviar = el('button', { type: 'submit', class: 'btn btn-primary' }, ia ? 'Enviar' : 'Buscar');
   const form = el('form', { class: 'tutor-form', novalidate: true }, entrada, enviar);
-  const borrar = el('button', { type: 'button', class: 'btn btn-quiet btn-sm', title: 'Empezar una conversación nueva' }, 'Nueva');
+  const borrar = el('button', { type: 'button', class: 'btn btn-quiet btn-sm', title: ia ? 'Empezar una conversación nueva' : 'Limpiar la búsqueda' }, ia ? 'Nueva' : 'Limpiar');
   const cerrar = el('button', { type: 'button', class: 'btn btn-quiet btn-sm', 'aria-label': 'Cerrar el tutor' }, '✕');
-  const head = el('div', { class: 'tutor-head' }, el('span', { class: 'badge badge-violet' }, 'IA'), el('h2', { id: 'tutorTitle' }, 'Tutor de redes'), el('span', { style: undefined }), borrar, paginaCompleta ? null : cerrar);
+  const head = el('div', { class: 'tutor-head' }, ia ? el('span', { class: 'badge badge-violet' }, 'IA') : null, el('h2', { id: 'tutorTitle' }, ia ? 'Tutor de redes' : 'Buscar en el curso'), el('span', { style: undefined }), borrar, paginaCompleta ? null : cerrar);
   head.children[2].style.flex = '1';
 
   const panel = paginaCompleta
@@ -145,6 +156,11 @@ export function crearTutor({ leccion = null, paginaCompleta = false } = {}) {
     : el('aside', { class: 'tutor-panel', 'aria-labelledby': 'tutorTitle', 'data-closed': '', role: 'dialog', 'aria-modal': 'false' }, head, mensajesBox, form);
 
   function bienvenida() {
+    if (!ia) {
+      mensajesBox.replaceChildren(el('div', { class: 'msg msg-ai' }, el('p', {}, 'Escribe una duda con tus palabras y te muestro las lecciones del curso donde se explica.')),
+        el('div', { class: 'suggestions' }, ['¿Cómo se calcula una subred?', 'VLAN nativa en un trunk', '¿Cómo elige OSPF la mejor ruta?', 'Diferencia entre TCP y UDP'].map(s => el('button', { type: 'button', class: 'btn btn-ghost btn-sm', onclick: () => { entrada.value = s; form.requestSubmit(); } }, s))));
+      return;
+    }
     mensajesBox.replaceChildren(el('div', { class: 'msg msg-ai' }, el('p', {}, leccion
       ? `Hola. Estoy al tanto de la lección «${leccion.titulo}». Pregúntame lo que no te haya quedado claro, pídeme ejemplos o ejercicios.`
       : 'Hola, soy tu tutor de redes. Puedo explicarte cualquier tema del CCNA o de bases de datos, ponerte ejercicios, corregirte o hacerte una entrevista de prueba.')),
@@ -164,6 +180,17 @@ export function crearTutor({ leccion = null, paginaCompleta = false } = {}) {
     return partes.join('\n\n---\n\n').slice(0, 9000);
   }
 
+  async function buscar(pregunta) {
+    const rel = await buscarEnCurso(pregunta, 5);
+    const prioridad = leccion && rel.some(l => l.id === leccion.id) ? [rel.find(l => l.id === leccion.id), ...rel.filter(l => l.id !== leccion.id)] : rel;
+    mensajesBox.append(rel.length
+      ? el('div', { class: 'msg msg-ai' }, el('p', {}, rel.length === 1 ? 'Esto lo explica esta lección:' : 'Esto lo explican estas lecciones:'),
+          el('ul', { class: 'search-results' }, prioridad.map(l => el('li', {}, el('a', { href: 'leccion.html?id=' + l.id }, l.titulo), el('p', { class: 'small muted' }, extracto(l.texto, pregunta, 220))))))
+      : el('div', { class: 'msg msg-ai' }, el('p', {}, 'No encontré esa duda en el curso. Prueba con otras palabras o con el nombre del tema (por ejemplo «NAT», «ACL» o «subnetting»).')));
+    mensajesBox.scrollTop = mensajesBox.scrollHeight;
+    entrada.focus();
+  }
+
   async function sinServidor(pregunta, motivo) {
     nota(motivo);
     const rel = await buscarEnCurso(pregunta, 3);
@@ -179,6 +206,7 @@ export function crearTutor({ leccion = null, paginaCompleta = false } = {}) {
     mensajesBox.querySelector('.suggestions')?.remove();
     mensajesBox.append(el('div', { class: 'msg msg-user' }, pregunta));
     entrada.value = '';
+    if (!ia) return buscar(pregunta);
     if (!cuentasActivas()) return sinServidor(pregunta, 'El tutor con IA se activa cuando el administrador conecta la web con Supabase.');
     if (!(await usuarioActual())) {
       mensajesBox.append(el('p', { class: 'msg-note' }, 'Inicia sesión para hablar con el tutor. ', el('a', { href: 'cuenta.html?siguiente=' + encodeURIComponent(location.pathname.split('/').pop() + location.search) }, 'Entrar o crear cuenta')));
@@ -224,7 +252,7 @@ export function crearTutor({ leccion = null, paginaCompleta = false } = {}) {
   panel.addEventListener('keydown', e => { if (e.key === 'Escape' && !paginaCompleta) cerrarPanel(); });
   let fab = null;
   if (!paginaCompleta) {
-    fab = el('button', { type: 'button', class: 'btn btn-primary tutor-fab', 'aria-haspopup': 'dialog' }, '💬 Preguntar al tutor');
+    fab = el('button', { type: 'button', class: 'btn btn-primary tutor-fab', 'aria-haspopup': 'dialog' }, ia ? '💬 Preguntar al tutor' : '🔎 Buscar en el curso');
     fab.addEventListener('click', abrir);
     document.body.append(fab, panel);
   }

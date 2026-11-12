@@ -6,6 +6,9 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 
 const check = process.argv.includes('--check');
 const config = JSON.parse(await readFile('config.json', 'utf8'));
+const ia = config.tutorIA === true;
+// Bloques condicionales en las páginas: <!--ia-->…<!--/ia--> solo con el tutor con IA; <!--sin-ia-->…<!--/sin-ia--> sin él.
+const condicional = t => t.replace(/<!--(sin-)?ia-->([\s\S]*?)<!--\/(?:sin-)?ia-->/g, (_, sin, dentro) => (!!sin !== ia ? dentro : ''));
 const supa = config.supabaseUrl ? new URL(config.supabaseUrl).origin : '';
 if (supa && !/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(supa)) throw new Error('supabaseUrl no parece un proyecto de Supabase: ' + supa);
 if (config.supabaseKey && /service_role|sb_secret_/.test(config.supabaseKey + atobSafe(config.supabaseKey))) throw new Error('¡Esa es una clave secreta! En config.json solo va la clave publishable/anon.');
@@ -18,12 +21,13 @@ const LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" heigh
 const ICON = {
   curso: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2.5Z"/><path d="M8 7h7M8 11h5"/></svg>',
   practica: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="m7 9 3 2-3 2M12 14h5"/></svg>',
+  buscar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
   tutor: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/><path d="M9 10h.01M12 10h.01M15 10h.01"/></svg>',
   examen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>',
   cuenta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
   tema: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>',
 };
-const NAV = [['curso.html', 'Curso', 'curso'], ['practica.html', 'Práctica', 'practica'], ['examen.html', 'Examen', 'examen'], ['tutor.html', 'Tutor IA', 'tutor']];
+const NAV = [['curso.html', 'Curso', 'curso'], ['practica.html', 'Práctica', 'practica'], ['examen.html', 'Examen', 'examen'], ia ? ['tutor.html', 'Tutor IA', 'tutor'] : ['tutor.html', 'Buscar', 'buscar']];
 
 function header(active) {
   const links = NAV.map(([href, label]) => `<a href="${href}"${active === href ? ' aria-current="page"' : ''}>${label}</a>`).join('');
@@ -89,10 +93,12 @@ for (const name of (await readdir('src/paginas')).filter(n => n.endsWith('.html'
   const src = await readFile('src/paginas/' + name, 'utf8');
   const m = src.match(/^<!--(\{[\s\S]*?\})-->\s*/);
   if (!m) throw new Error(name + ': falta la cabecera JSON');
-  outputs.set(name, page({ ...JSON.parse(m[1]), file: name }, src.slice(m[0].length)));
+  const meta = JSON.parse(m[1]);
+  if (!ia && meta.sinIa) Object.assign(meta, meta.sinIa);
+  outputs.set(name, page({ ...meta, file: name }, condicional(src.slice(m[0].length))));
 }
 outputs.set('js/config.js', `// Generado por scripts/paginas.mjs a partir de config.json. No editar a mano.
-export const CONFIG = Object.freeze(${JSON.stringify({ nombre: config.nombre, url: config.url, supabaseUrl: supa, supabaseKey: config.supabaseKey || '' }, null, 2)});
+export const CONFIG = Object.freeze(${JSON.stringify({ nombre: config.nombre, url: config.url, supabaseUrl: supa, supabaseKey: config.supabaseKey || '', tutorIA: ia }, null, 2)});
 `);
 
 const stale = [];
