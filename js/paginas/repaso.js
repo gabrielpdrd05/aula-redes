@@ -8,7 +8,7 @@ import { temasAReforzar, resumenRepaso, labsDeLeccion } from '../recomendaciones
 iniciarPagina();
 const raiz = $('#repaso');
 const params = new URLSearchParams(location.search);
-const NOMBRE_AREA = { redes: 'Redes', bd: 'Bases de datos', prog: 'Programación' };
+const NOMBRE_AREA = { redes: 'Redes', bd: 'Bases de datos', prog: 'Programación', ti: 'Empleo TI' };
 const [banco, curso] = await Promise.all([fetch('data/examen.json').then(r => r.json()), cargarCurso(), cargar()]);
 const porId = new Map(banco.map(q => [q.id, q]));
 const leccionDe = id => curso.lecciones.find(l => l.id === id.split('#')[0]);

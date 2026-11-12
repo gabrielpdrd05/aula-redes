@@ -11,7 +11,7 @@ const OBJETIVO = 85;
 const MINUTOS = { 20: 25, 50: 60, 100: 120 };
 const [banco, curso] = await Promise.all([fetch('data/examen.json').then(r => r.json()), cargarCurso(), cargar()]);
 const modulos = Object.fromEntries(curso.modulos.map(m => [m.id, m]));
-const NOMBRE_AREA = { redes: 'Redes', bd: 'Bases de datos', prog: 'Programación' };
+const NOMBRE_AREA = { redes: 'Redes', bd: 'Bases de datos', prog: 'Programación', ti: 'Empleo TI' };
 const pedida = new URLSearchParams(location.search).get('area');
 if (pedida && NOMBRE_AREA[pedida]) $('#area').value = pedida;
 

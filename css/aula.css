@@ -369,6 +369,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 20px 0; }
 .search-results p { margin: 2px 0 0; }
 
 .lab-tags { display: flex; gap: 8px; flex-wrap: wrap; margin: -4px 0 10px; }
+.lab-head .lab-tags { margin: 6px 0 0; }
 .badge-warn { background: var(--warn-soft); color: var(--warn); }
 .level-principiante { background: var(--ok-soft); color: var(--ok); }
 .level-intermedio { background: var(--accent-soft); color: var(--accent); }
@@ -481,6 +482,75 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 20px 0; }
 .trace { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 8px; }
 .trace li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; font-size: .9rem; }
 @media (max-width: 980px) { .project-brief, .project-layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------------------------------------------------------------- empleo TI: casos y rutas */
+.area-tabs.cinco { grid-template-columns: repeat(5, 1fr); max-width: 860px; }
+.callout-reto { background: var(--violet-soft); border-color: var(--violet); }
+.callout-externo { background: var(--surface-2); border-color: var(--accent); }
+.callout-solucion { background: var(--surface); border: 1px dashed var(--line-2); border-left: 4px solid var(--ok); padding-bottom: 10px; }
+.callout-solucion > summary { cursor: pointer; color: var(--ok); list-style: none; }
+.callout-solucion > summary::-webkit-details-marker { display: none; }
+.callout-solucion > summary::before { content: '▸ '; }
+.callout-solucion[open] > summary::before { content: '▾ '; }
+.callout-solucion[open] > summary { margin-bottom: 8px; }
+.case-steps { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 0 0 16px; }
+.case-steps li { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 650; color: var(--muted); padding: 4px 10px 4px 4px; border-radius: 999px; background: var(--surface-2); }
+.case-steps li span { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); font-size: .72rem; }
+.case-steps li.now { color: var(--ink); background: var(--accent-soft); }
+.case-steps li.now span { background: var(--accent); color: #fff; }
+.case-steps li.done { color: var(--ok); }
+.case-steps li.done span { background: var(--ok); color: #fff; }
+.ticket-card { border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: var(--radius-sm); padding: 12px 14px; background: var(--surface-2); margin-bottom: 12px; }
+.ticket-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ticket-from { margin: 4px 0 6px; }
+.ticket-text { margin: 0; padding: 8px 12px; border-left: 3px solid var(--line-2); background: var(--surface); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-style: italic; }
+.prio-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.prio-group { border: 0; padding: 0; margin: 0; min-width: 0; }
+.prio-group legend { font-weight: 700; margin-bottom: 6px; }
+.prio-out { grid-column: 1 / -1; margin: 0; }
+.prio { font-weight: 800; }
+.prio-p1 { background: var(--danger-soft); color: var(--danger); }
+.prio-p2 { background: var(--warn-soft); color: var(--warn); }
+.prio-p3 { background: var(--accent-soft); color: var(--accent); }
+.prio-p4 { background: var(--surface-2); color: var(--ink-2); }
+.case-nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; margin-top: 14px; }
+.case-diag { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; margin-bottom: 16px; }
+.case-actions { display: grid; gap: 8px; }
+.case-action { justify-content: flex-start; text-align: left; white-space: normal; height: auto; line-height: 1.35; padding: 10px 12px; }
+.case-action[disabled] { opacity: .6; }
+.case-log { margin: 0; padding-left: 1.3em; display: grid; gap: 10px; font-size: .9rem; }
+.case-log li strong { display: block; }
+.case-log li span { color: var(--ink-2); }
+.case-q { border: 0; padding: 0; margin: 0 0 12px; min-width: 0; }
+.case-q legend { font-weight: 700; margin-bottom: 8px; }
+.case-doc .field-label { font-weight: 700; font-size: .9rem; }
+.rubric { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px; align-items: center; margin-bottom: 14px; }
+.rubric-total { display: grid; justify-items: center; gap: 4px; }
+.rubric-score { font: 800 2.6rem/1 var(--sans); }
+.rubric-rows { display: grid; gap: 8px; }
+.rubric-row { display: grid; grid-template-columns: 120px minmax(0, 1fr) 34px; gap: 10px; align-items: center; font-size: .9rem; }
+.rubric-detail { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 8px; }
+.rubric-detail > summary { cursor: pointer; font-weight: 700; }
+.rubric-detail .tasks { margin-top: 10px; }
+.ticket-note { font-size: .9rem; }
+.ticket-note p { margin: 8px 0 0; }
+.queue td { vertical-align: middle; }
+.route-banner { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; }
+.route-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.route-card { display: grid; gap: 10px; align-content: start; }
+.route-card.priority { border-color: var(--accent); }
+.route-head { display: flex; gap: 12px; align-items: center; }
+.route-head .icon { font-size: 1.8rem; }
+.route-mods { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.route-mods li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: .9rem; }
+.route-mods li.soon { color: var(--muted); }
+.modules-plan { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.modules-plan .card { padding: 16px; }
+.modules-plan dl { margin: 6px 0 0; font-size: .86rem; }
+.modules-plan dt { font-weight: 700; margin-top: 6px; }
+.modules-plan dd { margin: 0; color: var(--ink-2); }
+@media (max-width: 860px) { .case-diag, .prio-grid, .route-grid, .modules-plan { grid-template-columns: minmax(0, 1fr); } .rubric { grid-template-columns: minmax(0, 1fr); justify-items: stretch; } .rubric-total { justify-items: start; grid-auto-flow: column; justify-content: start; align-items: baseline; } }
+@media (max-width: 760px) { .area-tabs.cinco { grid-template-columns: repeat(3, 1fr); } .area-tabs.cinco button { font-size: .78rem; } .rubric-row { grid-template-columns: 100px minmax(0, 1fr) 30px; } }
 
 /* ---------------------------------------------------------------- adaptación */
 @media (max-width: 980px) {

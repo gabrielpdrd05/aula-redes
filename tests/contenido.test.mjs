@@ -10,7 +10,7 @@ const lecciones = curso.modulos.flatMap(m => m.lecciones);
 test('ids de lección únicos y con formato seguro', () => {
   const ids = lecciones.map(l => l.id);
   assert.equal(new Set(ids).size, ids.length);
-  ids.forEach(id => assert.match(id, /^[mbp]\d-[a-z0-9-]+$/));
+  ids.forEach(id => assert.match(id, /^[mbps]\d+-[a-z0-9-]+$/));
 });
 
 test('los seis dominios del CCNA suman el 100 %', () => {
@@ -54,7 +54,24 @@ test('las tres áreas (Redes, Bases de datos y Programación) tienen contenido d
     for (const n of [1, 2, 3]) assert.ok(ls.some(l => l.nivel === n), `${area} sin nivel ${n}`);
     assert.ok(examen.filter(q => q.area === area).length >= 60, area + ': pocas preguntas para el simulacro');
   }
-  assert.ok(curso.modulos.every(m => ['redes', 'bd', 'prog'].includes(m.area)));
+  assert.ok(curso.modulos.every(m => ['redes', 'bd', 'prog', 'ti'].includes(m.area)));
+});
+
+test('el área Empleo TI tiene teoría, ejercicios guiados, retos con solución, evaluación práctica y proyecto', () => {
+  const ls = curso.modulos.filter(m => m.area === 'ti').flatMap(m => m.lecciones);
+  assert.ok(ls.length >= 10, 'pocas lecciones de Empleo TI');
+  const texto = JSON.stringify(ls);
+  for (const k of ['practica', 'reto', 'solucion', 'externo']) assert.match(texto, new RegExp(`"kind":"${k}"`), 'falta el aviso ' + k);
+  const retos = (texto.match(/"kind":"reto"/g) || []).length, soluciones = (texto.match(/"kind":"solucion"/g) || []).length;
+  assert.ok(soluciones >= retos, 'cada reto tiene su solución plegada');
+  for (const id of ['login', 'impresora-etiquetas', 'sucursal', 'nuevo-empleado', 'lento']) assert.match(texto, new RegExp(`"kind":"caso","id":"${id}"`), 'caso sin lección: ' + id);
+  assert.match(texto, /"kind":"turno","id":"soporte"/);
+  assert.ok(examen.filter(q => q.area === 'ti').length >= 30, 'pocas preguntas de Empleo TI');
+});
+
+test('los enlaces en Markdown se convierten en enlaces (no quedan como texto)', () => {
+  const textos = JSON.stringify(curso).match(/"t":"text","v":"[^"]*\]\([^"]*"/g) || [];
+  assert.deepEqual(textos, []);
 });
 
 test('los laboratorios de código y SQL están enlazados desde alguna lección', async () => {

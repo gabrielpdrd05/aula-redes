@@ -155,7 +155,7 @@ export async function montarProyecto(holder, id) {
 
   const plan = el('div', { class: 'table-wrap' }, el('table', {}, el('thead', {}, el('tr', {}, ['Elemento', 'Red', 'Detalles'].map(h => el('th', { scope: 'col' }, h)))), el('tbody', {}, p.plan.map(f => el('tr', {}, f.map(c => el('td', {}, c)))))));
   holder.append(el('section', { class: 'lab project', 'aria-label': p.titulo },
-    el('div', { class: 'lab-head' }, el('h3', {}, p.titulo.replace(/^Proyecto: /, '')), progreso),
+    el('div', { class: 'lab-head' }, el('h3', {}, p.titulo.replace(/^Proyecto: (.)/, (_, c) => c.toUpperCase())), progreso),
     el('div', { class: 'lab-tags' }, el('span', { class: 'badge level-' + p.nivel }, NIVEL[p.nivel]), el('span', { class: 'badge badge-violet' }, '🏗️ Proyecto real')),
     el('p', {}, p.historia),
     el('div', { class: 'project-brief' },

@@ -2,7 +2,7 @@
 // Los elementos interactivos ([[anim:x]], [[lab:x]], [[cli:x]], [[sql:x]]) se cargan bajo demanda.
 import { el } from './core.js';
 
-const CALLOUT_TITLES = { nota: 'Nota', examen: 'Para el examen', cuidado: 'Cuidado', practica: 'Practica', comando: 'Comando' };
+const CALLOUT_TITLES = { nota: 'Nota', examen: 'Para el examen', cuidado: 'Cuidado', practica: 'Practica', comando: 'Comando', reto: 'Reto sin ayuda', externo: 'Laboratorio externo', solucion: 'Ver una solución posible' };
 
 export function inline(segs) {
   return segs.map(s => {
@@ -72,7 +72,9 @@ export function renderBlocks(blocks, ctx = {}) {
           el('tbody', {}, b.rows.map(r => el('tr', {}, r.map(c => el('td', {}, inline(c)))))))));
         break;
       case 'callout':
-        frag.append(el('aside', { class: 'callout callout-' + b.kind }, el('div', { class: 'callout-title' }, CALLOUT_TITLES[b.kind] || b.kind), renderBlocks(b.c, ctx)));
+        // La solución de un reto va plegada: primero se intenta sin ayuda.
+        if (b.kind === 'solucion') frag.append(el('details', { class: 'callout callout-solucion' }, el('summary', { class: 'callout-title' }, CALLOUT_TITLES.solucion), renderBlocks(b.c, ctx)));
+        else frag.append(el('aside', { class: 'callout callout-' + b.kind }, el('div', { class: 'callout-title' }, CALLOUT_TITLES[b.kind] || b.kind), renderBlocks(b.c, ctx)));
         break;
       case 'embed': {
         const holder = el('div', { class: 'embed', dataset: { kind: b.kind, id: b.id } }, el('p', { class: 'muted small' }, 'Cargando el elemento interactivo…'));
@@ -92,6 +94,8 @@ const LOADERS = {
   sql: () => import('./labs/sql-lab.js').then(m => m.montarSql),
   code: () => import('./codigo/codigo-ui.js').then(m => m.montarCodigo),
   proyecto: () => import('./proyectos/proyecto-ui.js').then(m => m.montarProyecto),
+  caso: () => import('./casos/caso-ui.js').then(m => m.montarCaso),
+  turno: () => import('./casos/caso-ui.js').then(m => m.montarTurno),
 };
 
 async function montarEmbed(holder, kind, id, ctx) {

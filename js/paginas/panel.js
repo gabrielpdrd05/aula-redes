@@ -13,7 +13,7 @@ const curso = await cargarCurso().catch(() => null);
 const abiertos = new Set();
 let vista = local.get('aula:panel:vista', 'niveles');
 const pedida = new URLSearchParams(location.search).get('area');
-let area = ['redes', 'bd', 'prog'].includes(pedida) ? pedida : local.get('aula:panel:area', 'redes');
+let area = ['redes', 'bd', 'prog', 'ti'].includes(pedida) ? pedida : local.get('aula:panel:area', 'redes');
 
 const TEXTOS = {
   redes: ['Los cimientos: qué es una red, cómo viajan los datos (OSI, Ethernet, ARP), direcciones IP, tus primeros comandos en un Cisco y las VLAN.',
@@ -25,6 +25,9 @@ const TEXTOS = {
   prog: ['Programar desde cero: variables, condiciones, bucles, funciones, listas y cómo pensar un algoritmo.',
     'Los lenguajes más usados y las herramientas del día a día: Git, depuración, errores, archivos, JSON, APIs y POO.',
     'Nivel profesional: algoritmos y estructuras de datos, pruebas, código seguro, arquitectura, web, automatización de redes y tu carrera.'],
+  ti: ['Lo básico del trabajo de soporte: método de diagnóstico, Windows, programas, acceso remoto, tickets y atención al usuario.',
+    'Casos de oficinas, tiendas, almacenes y sucursales: impresoras de etiquetas, sucursales sin conexión, ingresos de personal y el turno de mesa de ayuda.',
+    'Mejora continua: gestión de problemas, causa raíz y base de conocimiento.'],
 };
 const NIVEL_INFO = [1, 2, 3].map(n => ({ n, clave: ['principiante', 'intermedio', 'avanzado'][n - 1], titulo: ['Nivel 1 · Principiante', 'Nivel 2 · Intermedio', 'Nivel 3 · Avanzado'][n - 1] }));
 // Orden de la ruta: primero todo el nivel 1, luego el 2 y luego el 3 (dentro de cada nivel, en el orden del temario).
@@ -63,9 +66,9 @@ function pintar() {
   $('#stRacha').textContent = racha();
   $('#stLabs').textContent = `${labsArea.filter(l => labHecho(l.progreso)).length}/${labsArea.length}`;
   $$('#areas button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.area === area)));
-  $('#progresoTitulo').textContent = 'TU PROGRESO EN ' + { redes: 'REDES', bd: 'BASES DE DATOS', prog: 'PROGRAMACIÓN' }[area];
+  $('#progresoTitulo').textContent = 'TU PROGRESO EN ' + { redes: 'REDES', bd: 'BASES DE DATOS', prog: 'PROGRAMACIÓN', ti: 'EMPLEO TI' }[area];
   $('#vistaModulos').textContent = area === 'redes' ? 'Por módulos del CCNA' : 'Por módulos';
-  const [href, texto] = { redes: ['laboratorio.html?l=lab:subnetting', 'Entrenador de subnetting'], bd: ['laboratorio.html?l=sql:select', 'Laboratorio SQL'], prog: ['laboratorio.html?l=code:python-libre', 'Zona libre de Python'] }[area];
+  const [href, texto] = { redes: ['laboratorio.html?l=lab:subnetting', 'Entrenador de subnetting'], bd: ['laboratorio.html?l=sql:select', 'Laboratorio SQL'], prog: ['laboratorio.html?l=code:python-libre', 'Zona libre de Python'], ti: ['rutas.html', 'Rutas de empleo'] }[area];
   $('#practicaArea').setAttribute('href', href);
   $('#practicaArea').textContent = texto;
   $('a[href^="examen.html"]', $('.dashboard'))?.setAttribute('href', 'examen.html?area=' + area);
@@ -93,7 +96,7 @@ function pintar() {
       if (!lecciones.length) return null;
       const labs = CATALOGO.filter(l => l.area === area && l.nivel === nv.clave);
       const extra = el('div', { class: 'level-labs' }, el('p', { class: 'small' }, el('strong', {}, `Prácticas de este nivel (${labs.filter(l => labHecho(l.progreso)).length}/${labs.length} hechas)`)),
-        el('ul', { class: 'chips' }, labs.map(l => el('li', {}, el('a', { class: 'chip' + (labHecho(l.progreso) ? ' done' : ''), href: 'laboratorio.html?l=' + l.clave }, (l.grupo === 'averias' ? '🔧 ' : l.area === 'prog' ? '▶ ' : '') + l.titulo)))));
+        el('ul', { class: 'chips' }, labs.map(l => el('li', {}, el('a', { class: 'chip' + (labHecho(l.progreso) ? ' done' : ''), href: 'laboratorio.html?l=' + l.clave }, (l.grupo === 'averias' ? '🔧 ' : l.grupo === 'casos' ? '🎫 ' : l.area === 'prog' ? '▶ ' : '') + l.titulo)))));
       return bloque(area + 'n' + nv.n, { num: nv.n, titulo: nv.titulo, meta: [plural(labs.length, 'práctica', 'prácticas')], conModulo: true }, TEXTOS[area][nv.n - 1], lecciones, extra, siguiente?.nivel === nv.n);
     }).filter(Boolean));
   } else {

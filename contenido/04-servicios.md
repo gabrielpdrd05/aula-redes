@@ -567,13 +567,13 @@ Ha llegado el momento de juntarlo todo. En este proyecto configuras **desde cero
 
 | Tema | Lecciones donde se explica |
 |---|---|
-| VLAN y puertos de acceso | [VLAN: redes virtuales](leccion.html?id=m2-vlan) |
-| Trunk 802.1Q y VLAN nativa | [Trunks 802.1Q](leccion.html?id=m2-trunk) |
-| Router-on-a-stick | [Enrutamiento entre VLAN](leccion.html?id=m2-intervlan) |
-| Ruta por defecto | [Rutas estáticas IPv4](leccion.html?id=m3-estatica) |
-| DHCP | [DHCP](leccion.html?id=m4-dhcp) |
-| NAT/PAT | [NAT y PAT](leccion.html?id=m4-nat) |
-| SSH y gestión | [Acceso remoto seguro con SSH](leccion.html?id=m4-ssh) |
+| VLAN y puertos de acceso | [VLAN: redes virtuales](./leccion.html?id=m2-vlan) |
+| Trunk 802.1Q y VLAN nativa | [Trunks 802.1Q](./leccion.html?id=m2-trunk) |
+| Router-on-a-stick | [Enrutamiento entre VLAN](./leccion.html?id=m2-intervlan) |
+| Ruta por defecto | [Rutas estáticas IPv4](./leccion.html?id=m3-estatica) |
+| DHCP | [DHCP](./leccion.html?id=m4-dhcp) |
+| NAT/PAT | [NAT y PAT](./leccion.html?id=m4-nat) |
+| SSH y gestión | [Acceso remoto seguro con SSH](./leccion.html?id=m4-ssh) |
 
 ## Cómo trabajar
 

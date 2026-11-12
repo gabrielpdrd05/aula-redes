@@ -3,7 +3,7 @@
 import { CATALOGO } from './labs/catalogo.js';
 import { leccionHecha, notaQuiz, labHecho, repaso } from './progreso.js';
 
-const PORTADA = new Set(['cli', 'sql', 'code', 'lab', 'proyecto']);
+const PORTADA = new Set(['cli', 'sql', 'code', 'lab', 'proyecto', 'caso', 'turno']);
 
 // Laboratorios que aparecen dentro de una lección (como entradas del catálogo).
 export function labsDeLeccion(leccion) {

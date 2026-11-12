@@ -2,10 +2,11 @@
 <section class="page"><div class="container">
   <div class="page-head"><h1>Práctica</h1><p>Laboratorios con corrección automática de las tres áreas, ordenados por nivel. Los que completes quedan marcados en tu progreso.</p></div>
   <div class="cmd-tools">
-    <div class="tabs area-tabs" role="tablist" aria-label="Área" id="filtroArea">
+    <div class="tabs area-tabs cuatro" role="tablist" aria-label="Área" id="filtroArea">
       <button type="button" role="tab" data-area="redes" aria-selected="true">🌐 Redes</button>
       <button type="button" role="tab" data-area="bd" aria-selected="false">🗄️ Bases de datos</button>
       <button type="button" role="tab" data-area="prog" aria-selected="false">💻 Programación</button>
+      <button type="button" role="tab" data-area="ti" aria-selected="false">🏢 Empleo TI</button>
     </div>
     <div class="tabs level-filter" role="group" aria-label="Filtrar por nivel" id="filtroNivel">
       <button type="button" data-nivel="" aria-pressed="true">Todos</button>
@@ -46,5 +47,15 @@
     <h2>Zona libre</h2>
     <p class="muted">Escribe y ejecuta lo que quieras, sin corrección.</p>
     <div class="grid-3" data-grupo="libre"></div>
+  </section>
+
+  <section class="area-section" id="area-ti" data-area="ti" hidden>
+    <p class="alert alert-info mb"><span>Prácticas de empleo con una empresa ficticia (oficinas, tiendas, almacenes y sucursales). Elige tu <a href="rutas.html">ruta de empleo</a> para saber en qué orden hacerlas.</span></p>
+    <h2>Proyectos de portafolio</h2>
+    <p class="muted">Un trabajo completo que puedes mostrar: decisiones, notas de ticket y mensajes, con informe descargable.</p>
+    <div class="grid-3" data-grupo="proyectos"></div>
+    <h2>Casos de soporte y mesa de ayuda</h2>
+    <p class="muted">Tickets reales: prioriza, diagnostica, resuelve, documenta y comunica. Se evalúan las cuatro partes.</p>
+    <div class="grid-3" data-grupo="casos"></div>
   </section>
 </div></section>
