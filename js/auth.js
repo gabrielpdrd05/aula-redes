@@ -48,6 +48,7 @@ export function mensajeError(err) {
   if (/password should be at least|weak password|pwned|known to be weak/i.test(m)) return 'La contraseña es demasiado débil o aparece en filtraciones conocidas. Elige otra más larga.';
   if (/rate limit|too many/i.test(m)) return 'Demasiados intentos. Espera unos minutos y vuelve a probar.';
   if (/invalid totp|invalid code|code.*expired/i.test(m)) return 'El código no es válido o ha caducado. Prueba con el siguiente.';
+  if (/reauthenticat/i.test(m)) return 'Por seguridad, cierra sesión y vuelve a entrar antes de cambiar la contraseña.';
   if (/network|fetch/i.test(m)) return 'No hay conexión con el servidor. Revisa tu internet.';
   return 'No se pudo completar la operación: ' + m;
 }
