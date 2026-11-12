@@ -1,40 +1,22 @@
-# Comprueba el proyecto en cada cambio y publica la web en GitHub Pages desde main.
-name: Comprobar y publicar
+# La web se mudó a https://loopback-academia.github.io (repositorio loopback-academia/loopback-academia.github.io).
+# Esta dirección antigua solo publica páginas de redirección (carpeta redireccion/), que llevan a la misma sección
+# en la nueva dirección y trasladan el progreso guardado sin cuenta en el navegador.
+name: Publicar redirección
 
 on:
   push:
     branches: [main]
-  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: pages-${{ github.ref }}
+  group: pages
   cancel-in-progress: true
 
 jobs:
-  comprobar:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: npm ci
-      - name: Temario y páginas al día
-        run: npm run check
-      - name: Pruebas (laboratorios, contenido, seguridad, RLS de la base de datos)
-        run: npm test
-
   publicar:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: comprobar
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -44,10 +26,11 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Preparar solo los archivos públicos
+      - name: Preparar la redirección
         run: |
           mkdir _site
-          cp -r *.html manifest.webmanifest css js data img vendor _site/
+          cp redireccion/* _site/
+          cp _site/index.html _site/404.html
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

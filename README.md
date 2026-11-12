@@ -1,3 +1,5 @@
+> **Este repositorio se ha mudado.** La web ahora se llama **Loopback** y vive en https://loopback-academia.github.io (código en https://github.com/loopback-academia/loopback-academia.github.io). Esta dirección solo publica una redirección.
+
 # Loopback
 
 Plataforma de aprendizaje con **tres áreas completas**, de principiante a nivel de empleo: **Redes** (temario completo del **Cisco CCNA 200-301**), **Bases de datos** y **Programación**.
