@@ -1,4 +1,5 @@
 ---
+area: redes
 id: m8
 titulo: Tu carrera en redes
 dominio: Carrera profesional

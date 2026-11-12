@@ -17,4 +17,4 @@ export function buscarLeccion(curso, id) {
   return { leccion: curso.lecciones[i], anterior: curso.lecciones[i - 1] || null, siguiente: curso.lecciones[i + 1] || null, indice: i };
 }
 
-export const numeroModulo = m => m.id.replace(/^m/, '');
+export const numeroModulo = m => m.id.replace(/^[a-z]+/, '');

@@ -6,10 +6,10 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://uwwvywmsolckebbuktpy.supabase.co wss://uwwvywmsolckebbuktpy.supabase.co; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Simulacro de examen · Aula de Redes</title>
-<meta name="description" content="Simulacro de examen con preguntas de todos los dominios del CCNA, cronómetro y nota por dominio.">
+<meta name="description" content="Simulacros de examen de redes (CCNA), bases de datos y programación, con cronómetro y nota por módulo.">
 <link rel="canonical" href="https://gabrielpdrd05.github.io/aula-redes/examen.html">
 <meta property="og:title" content="Simulacro de examen · Aula de Redes">
-<meta property="og:description" content="Simulacro de examen con preguntas de todos los dominios del CCNA, cronómetro y nota por dominio.">
+<meta property="og:description" content="Simulacros de examen de redes (CCNA), bases de datos y programación, con cronómetro y nota por módulo.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0b7285">
 <link rel="icon" href="img/icono.svg" type="image/svg+xml">
@@ -32,11 +32,12 @@
 </div></header>
 <main id="main">
 <section class="page"><div class="narrow" id="examen">
-  <div class="page-head"><h1>Simulacro de examen</h1><p>Preguntas al azar de todos los dominios con el peso del CCNA real. Como en el examen, no puedes volver atrás.</p></div>
+  <div class="page-head"><h1>Simulacro de examen</h1><p>Preguntas al azar de todos los módulos del área que elijas. En Redes se reparten con el peso de cada dominio del CCNA real. Como en un examen de verdad, no puedes volver atrás.</p></div>
   <div class="card" id="config">
     <div class="field"><label for="nPreguntas">Número de preguntas</label>
       <select id="nPreguntas"><option value="20">20 preguntas · 25 minutos</option><option value="50" selected>50 preguntas · 60 minutos</option><option value="100">100 preguntas · 120 minutos (como el real)</option></select></div>
-    <label class="option"><input type="checkbox" id="soloCcna" checked><span>Solo los seis dominios del CCNA (sin bases de datos ni carrera)</span></label>
+    <div class="field"><label for="area">Área</label>
+      <select id="area"><option value="redes" selected>Redes (CCNA 200-301)</option><option value="bd">Bases de datos</option><option value="prog">Programación</option></select></div>
     <button type="button" class="btn btn-primary btn-lg" id="empezar">Empezar el simulacro</button>
     <div id="historialExamenes"></div>
   </div>

@@ -1,4 +1,5 @@
 ---
+area: redes
 id: m3
 titulo: Conectividad IP
 dominio: 3.0 IP Connectivity

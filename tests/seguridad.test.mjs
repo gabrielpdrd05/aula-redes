@@ -6,7 +6,8 @@ import { readFile, readdir } from 'node:fs/promises';
 
 const raiz = new URL('../', import.meta.url);
 const leer = p => readFile(new URL(p, raiz), 'utf8');
-const html = (await readdir(raiz)).filter(f => f.endsWith('.html'));
+// sandbox.html es el entorno aislado de ejecución de código: tiene su propia política (ver su prueba).
+const html = (await readdir(raiz)).filter(f => f.endsWith('.html') && f !== 'sandbox.html');
 async function archivos(dir, ext) {
   const out = [];
   for (const e of await readdir(new URL(dir, raiz), { withFileTypes: true })) {
@@ -43,7 +44,9 @@ test('sin scripts ni manejadores de eventos en línea', async () => {
 test('el código no usa innerHTML, eval ni Function', async () => {
   for (const f of propios) {
     const s = await leer(f);
-    assert.doesNotMatch(s, /\.innerHTML\s*=|outerHTML\s*=|insertAdjacentHTML|document\.write|\beval\(|new Function\(/, f);
+    assert.doesNotMatch(s, /\.innerHTML\s*=|outerHTML\s*=|insertAdjacentHTML|document\.write|\beval\(/, f);
+    // Solo el worker del entorno aislado ejecuta código del alumno (con new Function), y nunca en el origen de la web.
+    if (f !== 'js/codigo/sandbox.js') assert.doesNotMatch(s, /new Function\(/, f);
     assert.doesNotMatch(s, /setAttribute\(\s*['"]style['"]/, f);
   }
 });
@@ -75,4 +78,22 @@ test('la función del tutor valida al usuario y no expone la clave de Anthropic'
   assert.doesNotMatch(s, /apiKey\s*:/);
   assert.match(s, /ALLOWED_ORIGINS/);
   assert.doesNotMatch(s, /Access-Control-Allow-Origin["']?\s*:\s*["']\*/);
+});
+
+test('el código de los alumnos se ejecuta aislado del resto de la web', async () => {
+  const pagina = await leer('sandbox.html');
+  const csp = pagina.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
+  assert.ok(csp, 'sandbox.html sin CSP');
+  assert.match(csp, /default-src 'none'/);
+  assert.match(csp, /connect-src 'self'/);
+  assert.doesNotMatch(csp, /'unsafe-inline'|https?:|\*/);
+  assert.doesNotMatch(pagina, /<script(?![^>]*\ssrc=)/, 'sin scripts en línea');
+  const sb = await leer('js/codigo/sandbox.js');
+  assert.match(sb, /window\.parent === window \|\| self\.origin !== 'null'/, 'solo corre con origen opaco y dentro de un iframe');
+  assert.match(sb, /ev\.source !== window\.parent/, 'solo acepta mensajes de su página');
+  assert.match(sb, /terminate\(\)/, 'corta los programas que no terminan');
+  const runner = await leer('js/codigo/runner.js');
+  assert.match(runner, /setAttribute\('sandbox', 'allow-scripts'\)/);
+  assert.doesNotMatch(runner, /allow-same-origin/, 'nunca allow-same-origin');
+  assert.match(runner, /ev\.source !== frame\.contentWindow/, 'solo escucha a su iframe');
 });

@@ -1,4 +1,5 @@
 ---
+area: redes
 id: m2
 titulo: Acceso a la red
 dominio: 2.0 Network Access

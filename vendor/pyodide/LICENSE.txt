@@ -1,0 +1,9 @@
+Pyodide 0.27.7 — https://github.com/pyodide/pyodide
+Copyright (C) 2018-2025 Pyodide contributors and Mozilla.
+
+Pyodide se distribuye bajo la Mozilla Public License 2.0 (MPL-2.0): https://www.mozilla.org/en-US/MPL/2.0/
+Estos ficheros se incluyen sin modificar, tal como se publican en el paquete npm "pyodide@0.27.7".
+El código fuente completo está disponible en https://github.com/pyodide/pyodide/tree/0.27.7
+
+Pyodide incluye CPython (licencia PSF) y otros componentes con sus propias licencias,
+detalladas en el repositorio de Pyodide.

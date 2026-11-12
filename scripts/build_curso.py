@@ -44,9 +44,12 @@ KNOWN = {
     "lab": {"subnetting", "binario", "vlsm"},
     "cli": {"basico", "vlan", "trunk", "estatica", "ospf", "acl", "ssh", "portsecurity", "router", "intervlan", "dhcp", "nat",
             "averia-puerto", "averia-trunk", "averia-gestion", "averia-ruta", "averia-ospf", "averia-ssh", "averia-acl", "averia-duplex"},
-    "sql": {"select", "join", "agregacion", "modificar", "inventario"},
+    "sql": {"select", "join", "agregacion", "funciones", "subconsultas", "modificar", "ddl", "ventanas", "inventario"},
+    "code": {"python-basico", "python-condicionales", "python-bucles", "python-colecciones", "python-redes", "python-poo",
+             "js-basico", "js-arrays", "js-avanzado", "python-libre", "js-libre"},
 }
 CALLOUTS = {"nota", "examen", "cuidado", "practica", "comando"}
+AREAS = ("redes", "bd", "prog")
 LESSON_RE = re.compile(r"^===\s*([a-z0-9-]+)\s*\|\s*(.+?)\s*\|\s*(\d+)\s*\|\s*([123])\s*$")
 INLINE_RE = re.compile(r"(\*\*.+?\*\*|`[^`]+`|\[[^\]]+\]\((?:https://|\./|#)[^)\s]+\)|(?<![\w*])\*[^*\s][^*]*?\*(?!\w))")
 
@@ -191,7 +194,11 @@ def parse_blocks(lines: list[str], where: str) -> tuple[list, list]:
             flush_para()
             rows = []
             while i < len(lines) and lines[i].strip().startswith("|"):
-                cells = [c.strip() for c in lines[i].strip().strip("|").split("|")]
+                # Celdas separadas por | ; un \| dentro de una celda es una barra literal (por ejemplo el operador ||).
+                fila = lines[i].strip()
+                fila = fila[1:] if fila.startswith("|") else fila
+                fila = fila[:-1] if fila.endswith("|") and not fila.endswith("\\|") else fila
+                cells = [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", fila)]
                 if not all(re.fullmatch(r":?-{2,}:?", c) for c in cells):
                     rows.append([inline(c) for c in cells])
                 i += 1
@@ -234,7 +241,7 @@ def parse_module(path: Path) -> dict:
     for line in m.group(1).splitlines():
         k, _, v = line.partition(":")
         meta[k.strip()] = v.strip()
-    for key in ("id", "titulo", "descripcion"):
+    for key in ("id", "titulo", "descripcion", "area"):
         if not meta.get(key):
             raise ContentError(f"{path.name}: falta '{key}' en la cabecera")
     body = text[m.end():].splitlines()
@@ -259,7 +266,7 @@ def parse_module(path: Path) -> dict:
             if not lid.startswith(meta["id"] + "-"):
                 raise ContentError(f"{path.name}: la lección {lid} debe empezar por '{meta['id']}-'")
             cur, buf = {"id": lid, "titulo": title, "minutos": int(minutes), "nivel": int(level)}, []
-        elif line.startswith("==="):
+        elif line.startswith("=== "):
             raise ContentError(f"{path.name}: cabecera de lección mal formada (=== id | título | minutos | nivel 1-3): {line!r}")
         elif cur is None:
             if line.strip():
@@ -271,7 +278,7 @@ def parse_module(path: Path) -> dict:
         raise ContentError(f"{path.name}: el módulo no tiene lecciones")
     return {
         "id": meta["id"], "titulo": meta["titulo"], "descripcion": meta["descripcion"],
-        "dominio": meta.get("dominio", ""), "peso": int(meta.get("peso", 0) or 0),
+        "dominio": meta.get("dominio", ""), "peso": int(meta.get("peso", 0) or 0), "area": meta["area"],
         "lecciones": lessons,
     }
 
@@ -288,13 +295,15 @@ def build() -> dict[str, str]:
     curso = {"modulos": []}
     buscar, examen = [], []
     for m in modules:
-        mod = {k: m[k] for k in ("id", "titulo", "descripcion", "dominio", "peso")}
+        if m["area"] not in AREAS:
+            raise ContentError(f"Módulo {m['id']}: área desconocida {m['area']!r} (usa {', '.join(AREAS)})")
+        mod = {k: m[k] for k in ("id", "titulo", "descripcion", "dominio", "peso", "area")}
         mod["lecciones"] = []
         for l in m["lecciones"]:
             mod["lecciones"].append({k: l[k] for k in ("id", "titulo", "minutos", "nivel", "blocks", "quiz")})
             buscar.append({"id": l["id"], "modulo": m["id"], "titulo": l["titulo"], "texto": l["texto"]})
             for n, q in enumerate(l["quiz"]):
-                examen.append({"id": f"{l['id']}#{n}", "modulo": m["id"], "dominio": m["dominio"], **q})
+                examen.append({"id": f"{l['id']}#{n}", "modulo": m["id"], "area": m["area"], "dominio": m["dominio"], **q})
         curso["modulos"].append(mod)
     dump = lambda o: json.dumps(o, ensure_ascii=False, separators=(",", ":")) + "\n"
     return {"curso.json": dump(curso), "buscar.json": dump(buscar), "examen.json": dump(examen)}

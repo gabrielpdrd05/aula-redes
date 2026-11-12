@@ -1,4 +1,5 @@
 ---
+area: redes
 id: m0
 titulo: Bienvenida
 dominio: Introducción
@@ -6,7 +7,7 @@ peso: 0
 descripcion: Cómo funciona el curso, qué es el CCNA y cómo montar tu laboratorio para practicar desde el primer día.
 ---
 === m0-curso | Cómo aprovechar este curso | 8 | 1
-Bienvenido a **Aula de Redes**. Este curso te lleva desde cero hasta el nivel que pide el examen **Cisco CCNA 200-301**, la certificación de redes más solicitada en las ofertas de empleo de Latinoamérica y España. Además incluye un módulo de **bases de datos** y otro de **carrera profesional** para que llegues preparado a tu primera entrevista.
+Bienvenido a **Aula de Redes**. Este curso te lleva desde cero hasta el nivel que pide el examen **Cisco CCNA 200-301**, la certificación de redes más solicitada en las ofertas de empleo de Latinoamérica y España. Además de esta área de **Redes**, la plataforma tiene otras dos completas: **Bases de datos** y **Programación**, cada una con su ruta por niveles. Las tres se complementan: un buen profesional de redes hoy consulta bases de datos y automatiza con Python.
 
 ## Cómo está organizado
 
@@ -28,7 +29,7 @@ Cada lección tiene tres partes: la **explicación** (con animaciones paso a pas
 - **Entiende antes de memorizar.** El examen no pregunta definiciones sueltas: pone escenarios. Si sabes *por qué* un switch inunda una trama, contestarás bien aunque la pregunta esté redactada de otra forma.
 - **Practica a diario la parte numérica.** El subnetting se aprende con repetición. Dedica 10 minutos al día al entrenador de subnetting hasta que lo hagas de cabeza.
 - **Escribe comandos.** Leer `switchport mode access` no es lo mismo que teclearlo. Usa el simulador de CLI y, cuando puedas, Packet Tracer.
-- **Pregunta todo al tutor.** En cada lección tienes un tutor con IA que conoce el tema que estás estudiando. Pídele ejemplos, que te lo explique de otra manera o que te ponga ejercicios.
+- **Busca tus dudas.** Desde cualquier lección, el botón "Buscar en el curso" te lleva al punto exacto donde se explica lo que no entiendes.
 
 ::: examen
 El CCNA 200-301 dura **120 minutos** y tiene entre 100 y 120 preguntas: de opción múltiple, de arrastrar y soltar, de simulación y de laboratorio. No se puede volver a una pregunta ya contestada, así que hay que llegar con soltura, no solo con conocimiento.

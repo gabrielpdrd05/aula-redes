@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<!-- Entorno aislado para ejecutar el código de los alumnos (Python con Pyodide y JavaScript).
+     Solo funciona dentro de un <iframe sandbox="allow-scripts"> (origen opaco): no puede leer la sesión, las cookies
+     ni el almacenamiento de la web, ni conectarse a ningún sitio salvo para descargar Pyodide de este mismo servidor.
+     El código se ejecuta en un Worker que se destruye si tarda demasiado. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' blob:; worker-src blob:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="robots" content="noindex">
+<title>Entorno de ejecución</title>
+<script src="js/codigo/sandbox.js"></script>
+</head>
+<body></body>
+</html>

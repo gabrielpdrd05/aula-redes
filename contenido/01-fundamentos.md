@@ -1,4 +1,5 @@
 ---
+area: redes
 id: m1
 titulo: Fundamentos de redes
 dominio: 1.0 Network Fundamentals

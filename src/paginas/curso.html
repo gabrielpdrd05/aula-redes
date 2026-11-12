@@ -1,19 +1,24 @@
-<!--{"title": "Tu curso · Aula de Redes", "description": "Panel del curso: progreso, módulos y lecciones del temario CCNA y de bases de datos.", "script": "panel.js"}-->
+<!--{"title": "Tu curso · Aula de Redes", "description": "Panel del curso: Redes (CCNA), Bases de datos y Programación, por niveles, con tu progreso.", "script": "panel.js"}-->
 <section class="page"><div class="container">
-  <div class="page-head"><h1 id="saludo">Tu curso</h1><p id="sub">Sigue la ruta por niveles: de principiante a nivel de empleo. Cada lección termina con un cuestionario y cada nivel tiene sus prácticas.</p></div>
+  <div class="page-head"><h1 id="saludo">Tu curso</h1><p id="sub">Tres áreas: Redes, Bases de datos y Programación. En cada una, sigue la ruta por niveles de principiante a nivel de empleo. Cada lección termina con un cuestionario y cada nivel tiene sus prácticas.</p></div>
   <div id="avisoCuenta"></div>
   <div class="dashboard">
     <div>
+      <div class="tabs area-tabs" role="tablist" aria-label="Área de estudio" id="areas">
+        <button type="button" role="tab" data-area="redes" aria-selected="true">🌐 Redes</button>
+        <button type="button" role="tab" data-area="bd" aria-selected="false">🗄️ Bases de datos</button>
+        <button type="button" role="tab" data-area="prog" aria-selected="false">💻 Programación</button>
+      </div>
       <article class="card continue-card mb" id="continuar" hidden></article>
       <div class="tabs view-tabs" role="tablist" aria-label="Cómo ver el temario" id="vistas">
         <button type="button" role="tab" data-vista="niveles" aria-selected="true">Ruta por niveles</button>
-        <button type="button" role="tab" data-vista="modulos" aria-selected="false">Por módulos del CCNA</button>
+        <button type="button" role="tab" data-vista="modulos" aria-selected="false" id="vistaModulos">Por módulos del CCNA</button>
       </div>
       <div id="modulos" aria-live="polite"><p class="muted">Cargando el temario…</p></div>
     </div>
     <aside class="stack">
       <article class="card">
-        <h2 class="small muted">TU PROGRESO</h2>
+        <h2 class="small muted" id="progresoTitulo">TU PROGRESO</h2>
         <div class="grid-2">
           <div class="stat"><strong id="stLecciones">0</strong><span>lecciones completadas</span></div>
           <div class="stat"><strong id="stRacha">0</strong><span>días seguidos</span></div>
@@ -25,7 +30,7 @@
       </article>
       <article class="card">
         <h2 class="small muted">PRÁCTICA RÁPIDA</h2>
-        <p><a href="laboratorio.html?l=lab:subnetting">Entrenador de subnetting</a></p>
+        <p><a href="laboratorio.html?l=lab:subnetting" id="practicaArea">Entrenador de subnetting</a></p>
         <p><a href="practica.html">Todos los laboratorios</a></p>
         <p><a href="comandos.html">Guía de comandos Cisco</a></p>
         <p><a href="examen.html">Simulacro de examen</a></p>

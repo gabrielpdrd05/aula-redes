@@ -11,19 +11,23 @@ const OBJETIVO = 85;
 const MINUTOS = { 20: 25, 50: 60, 100: 120 };
 const [banco, curso] = await Promise.all([fetch('data/examen.json').then(r => r.json()), cargarCurso(), cargar()]);
 const modulos = Object.fromEntries(curso.modulos.map(m => [m.id, m]));
+const NOMBRE_AREA = { redes: 'Redes', bd: 'Bases de datos', prog: 'Programación' };
+const pedida = new URLSearchParams(location.search).get('area');
+if (pedida && NOMBRE_AREA[pedida]) $('#area').value = pedida;
 
 function historial() {
   const ex = examenes().slice(-5).reverse();
   if (!ex.length) return el('p', { class: 'small muted' }, 'Aún no has hecho ningún simulacro.');
   return el('div', {}, el('h2', { class: 'small muted' }, 'TUS ÚLTIMOS SIMULACROS'),
-    el('ul', { class: 'plain-list' }, ex.map(e => el('li', {}, el('strong', {}, pct(e.puntos, e.total) + ' %'), ` · ${e.puntos}/${e.total} · ${new Date(e.t).toLocaleDateString('es')}`))));
+    el('ul', { class: 'plain-list' }, ex.map(e => el('li', {}, el('strong', {}, pct(e.puntos, e.total) + ' %'), ` · ${NOMBRE_AREA[modulos[Object.keys(e.dominios || {})[0]]?.area] || ''} · ${e.puntos}/${e.total} · ${new Date(e.t).toLocaleDateString('es')}`))));
 }
 $('#historialExamenes').replaceChildren(historial());
 
 function empezar() {
   const n = Number($('#nPreguntas').value);
-  const pesos = Object.fromEntries(curso.modulos.filter(m => m.peso > 0).map(m => [m.id, m.peso]));
-  if (!$('#soloCcna').checked) pesos.m7 = 10;
+  const area = $('#area').value;
+  // Redes: el peso de cada dominio del CCNA. Otras áreas: todos los módulos por igual.
+  const pesos = Object.fromEntries(curso.modulos.filter(m => m.area === area && (area !== 'redes' || m.peso > 0)).map(m => [m.id, area === 'redes' ? m.peso : 1]));
   const porModulo = {};
   for (const q of banco) (porModulo[q.modulo] ||= []).push(q);
   const cupo = repartir(n, pesos, Object.fromEntries(Object.entries(porModulo).map(([k, v]) => [k, v.length])));
@@ -91,8 +95,8 @@ function empezar() {
     raiz.replaceChildren(
       el('div', { class: 'page-head' }, el('span', { class: 'eyebrow' }, 'Resultado del simulacro'), el('h1', {}, `${nota} %`),
         el('p', {}, `${puntos} de ${preguntas.length} correctas en ${plural(Math.max(1, Math.round(segundos / 60)), 'minuto', 'minutos')}. ` +
-          (nota >= OBJETIVO ? '¡Muy bien! Estás en la zona de aprobado. Repite con otras preguntas para confirmarlo.' : `Objetivo: ${OBJETIVO} % de forma constante antes de presentarte al examen real. Repasa los dominios en naranja.`))),
-      el('div', { class: 'card' }, el('h2', {}, 'Por dominio'), el('div', { class: 'domain-bars' }, barras)),
+          (nota >= OBJETIVO ? '¡Muy bien! Dominas el temario. Repite con otras preguntas para confirmarlo.' : `Objetivo: ${OBJETIVO} % de forma constante. Repasa los módulos en naranja.`))),
+      el('div', { class: 'card' }, el('h2', {}, 'Por módulo'), el('div', { class: 'domain-bars' }, barras)),
       fallos.length ? el('div', { class: 'card mt' }, el('h2', {}, 'Repasa tus fallos'), fallos.map(({ q }) => el('div', { class: 'question' },
         el('p', {}, el('strong', {}, q.q)),
         el('p', { class: 'small' }, 'Correcta: ', q.opciones.filter(o => o.correcta).map(o => o.texto).join(' · ')),

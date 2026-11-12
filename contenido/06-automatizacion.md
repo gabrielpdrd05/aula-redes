@@ -1,4 +1,5 @@
 ---
+area: redes
 id: m6
 titulo: Automatización y programabilidad
 dominio: 6.0 Automation and Programmability

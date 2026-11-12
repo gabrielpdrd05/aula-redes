@@ -10,7 +10,7 @@ const lecciones = curso.modulos.flatMap(m => m.lecciones);
 test('ids de lección únicos y con formato seguro', () => {
   const ids = lecciones.map(l => l.id);
   assert.equal(new Set(ids).size, ids.length);
-  ids.forEach(id => assert.match(id, /^m\d-[a-z0-9-]+$/));
+  ids.forEach(id => assert.match(id, /^[mbp]\d-[a-z0-9-]+$/));
 });
 
 test('los seis dominios del CCNA suman el 100 %', () => {
@@ -45,4 +45,22 @@ test('los enlaces internos de las lecciones apuntan a lecciones existentes', () 
   const ids = new Set(lecciones.map(l => l.id));
   const enlaces = JSON.stringify(curso).match(/leccion\.html\?id=[a-z0-9-]+/g) || [];
   enlaces.forEach(e => assert.ok(ids.has(e.split('=')[1]), e));
+});
+
+test('las tres áreas (Redes, Bases de datos y Programación) tienen contenido de los tres niveles', () => {
+  for (const area of ['redes', 'bd', 'prog']) {
+    const ls = curso.modulos.filter(m => m.area === area).flatMap(m => m.lecciones);
+    assert.ok(ls.length >= 20, area + ': pocas lecciones');
+    for (const n of [1, 2, 3]) assert.ok(ls.some(l => l.nivel === n), `${area} sin nivel ${n}`);
+    assert.ok(examen.filter(q => q.area === area).length >= 60, area + ': pocas preguntas para el simulacro');
+  }
+  assert.ok(curso.modulos.every(m => ['redes', 'bd', 'prog'].includes(m.area)));
+});
+
+test('los laboratorios de código y SQL están enlazados desde alguna lección', async () => {
+  const { EJERCICIOS: CODIGO } = await import('../js/codigo/ejercicios.js');
+  const { EJERCICIOS: SQL } = await import('../js/labs/sql-ejercicios.js');
+  const texto = JSON.stringify(curso);
+  for (const id of Object.keys(CODIGO)) assert.match(texto, new RegExp(`"kind":"code","id":"${id}"`), 'sin lección: code:' + id);
+  for (const id of Object.keys(SQL)) assert.match(texto, new RegExp(`"kind":"sql","id":"${id}"`), 'sin lección: sql:' + id);
 });
