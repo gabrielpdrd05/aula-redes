@@ -1,0 +1,6 @@
+{$DOMAIN} {
+	request_body {
+		max_size 5GB
+	}
+	reverse_proxy clipia:8000
+}
