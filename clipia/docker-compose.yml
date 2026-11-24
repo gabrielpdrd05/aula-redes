@@ -1,0 +1,30 @@
+services:
+  clipia:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/data
+    ports:
+      # En tu PC: 0.0.0.0 deja entrar desde el celular en tu misma red WiFi.
+      # En un servidor con HTTPS (Caddy): pon CLIPIA_BIND=127.0.0.1 en el .env
+      - "${CLIPIA_BIND:-0.0.0.0}:8000:8000"
+
+  # HTTPS automático con tu dominio. Se activa con:
+  #   docker compose --profile https up -d
+  caddy:
+    image: caddy:2.8
+    profiles: ["https"]
+    restart: unless-stopped
+    depends_on: [clipia]
+    environment:
+      DOMAIN: ${CLIPIA_DOMAIN:-}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+
+volumes:
+  caddy_data:

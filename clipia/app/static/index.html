@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0b0b10">
+<title>ClipIA</title>
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="manifest" href="/static/manifest.webmanifest">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="logo">▶</span> ClipIA</div>
+  <div class="top-right">
+    <span id="ai-badge" class="badge"></span>
+    <form method="post" action="/logout"><button class="btn ghost small" type="submit">Salir</button></form>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card hero">
+    <h1>Pega un enlace y recibe clips listos para subir</h1>
+    <p class="muted">YouTube, Twitch, TikTok, Facebook, Kick, Instagram, X… videos o directos en vivo.</p>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="link" role="tab">Enlace</button>
+      <button class="tab" data-tab="file" role="tab">Subir archivo</button>
+    </div>
+
+    <form id="job-form" autocomplete="off">
+      <div class="tab-panel" data-panel="link">
+        <div class="url-row">
+          <input id="url" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=…">
+          <button class="btn primary" type="submit">Generar clips</button>
+        </div>
+      </div>
+      <div class="tab-panel" data-panel="file" hidden>
+        <label class="drop" id="drop">
+          <input id="file" type="file" accept="video/*,.mkv,.flv,.ts">
+          <span id="file-label">Toca para elegir un video o arrástralo aquí</span>
+        </label>
+        <div id="upload-progress" class="bar" hidden><span></span></div>
+        <button class="btn primary full" type="submit">Subir y generar clips</button>
+      </div>
+
+      <details class="opts">
+        <summary>Opciones</summary>
+        <div class="grid">
+          <label>Cantidad de clips
+            <select id="num_clips">
+              <option value="0">Los que valgan la pena</option>
+              <option value="3">3</option><option value="5">5</option>
+              <option value="8">8</option><option value="10">10</option><option value="15">15</option>
+            </select>
+          </label>
+          <label>Duración de cada clip
+            <select id="duration">
+              <option value="15-30">15 a 30 s</option>
+              <option value="20-60" selected>20 a 60 s</option>
+              <option value="45-90">45 a 90 s</option>
+              <option value="60-180">1 a 3 min</option>
+            </select>
+          </label>
+          <label>Formato
+            <select id="layout">
+              <option value="auto">Vertical 9:16 automático</option>
+              <option value="crop">Vertical · siguiendo la cara</option>
+              <option value="blur">Vertical · video entero con fondo difuminado</option>
+              <option value="horizontal">Horizontal 16:9</option>
+            </select>
+          </label>
+          <label>Estilo de subtítulos
+            <select id="subtitle_style">
+              <option value="viral">Viral (palabra en amarillo)</option>
+              <option value="verde">Viral (palabra en verde)</option>
+              <option value="caja">Con caja oscura</option>
+              <option value="minimal">Minimalista</option>
+            </select>
+          </label>
+          <label>Idioma del video
+            <select id="language">
+              <option value="auto">Detectar solo</option>
+              <option value="es">Español</option><option value="en">Inglés</option>
+              <option value="pt">Portugués</option><option value="fr">Francés</option>
+              <option value="it">Italiano</option><option value="de">Alemán</option>
+            </select>
+          </label>
+          <label>Si es un directo, grabar hasta
+            <select id="max_live_minutes">
+              <option value="15">15 min</option><option value="30">30 min</option>
+              <option value="60" selected>1 hora</option><option value="120">2 horas</option>
+              <option value="240">4 horas</option>
+            </select>
+          </label>
+        </div>
+        <div class="checks">
+          <label class="check"><input id="uppercase" type="checkbox" checked> Subtítulos en MAYÚSCULAS</label>
+          <label class="check"><input id="hook_title" type="checkbox" checked> Título gancho al inicio</label>
+        </div>
+        <label>Indicaciones para la IA (opcional)
+          <input id="instructions" maxlength="500" placeholder="Ej.: solo los momentos más graciosos, nada de política">
+        </label>
+      </details>
+      <p id="form-error" class="error" hidden></p>
+    </form>
+  </section>
+
+  <section>
+    <h2 class="section-title">Tus trabajos</h2>
+    <div id="jobs"><p class="muted">Todavía no hay nada. Pega tu primer enlace arriba.</p></div>
+  </section>
+</main>
+
+<template id="job-tpl">
+  <article class="card job">
+    <div class="job-head">
+      <div class="job-info">
+        <h3 class="job-title"></h3>
+        <p class="job-meta muted"></p>
+      </div>
+      <div class="job-actions"></div>
+    </div>
+    <div class="job-progress">
+      <div class="bar"><span></span></div>
+      <p class="job-msg muted"></p>
+    </div>
+    <div class="clips"></div>
+  </article>
+</template>
+
+<template id="clip-tpl">
+  <div class="clip">
+    <div class="player"><video controls playsinline preload="none"></video></div>
+    <div class="clip-body">
+      <div class="clip-top"><span class="score"></span><span class="time muted"></span></div>
+      <h4 class="clip-title"></h4>
+      <p class="clip-reason muted"></p>
+      <textarea class="caption" rows="4" readonly></textarea>
+      <div class="clip-buttons">
+        <a class="btn primary small dl">Descargar</a>
+        <button class="btn ghost small copy" type="button">Copiar texto</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<div id="toast" class="toast" hidden></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
