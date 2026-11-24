@@ -62,14 +62,25 @@ def format_transcript(segments: list[dict]) -> str:
     return "\n".join(f"[{s['start']:.1f}-{s['end']:.1f}] {s['text']}" for s in segments if s["text"])
 
 
-def pick_with_claude(transcript: dict, duration: float, opts, video_title: str, api_key: str, model: str) -> list[dict]:
+def pick_with_claude(transcript: dict, duration: float, opts, video_title: str, api_key: str, model: str,
+                     live: dict | None = None) -> list[dict]:
+    """live = {"min_end": s, "minutes": m} cuando se analiza un bloque de un directo que sigue al aire."""
     import anthropic
 
     segments = transcript["segments"]
     if not segments:
+        if live:
+            return []
         raise PipelineError("No se detectó voz en el video, así que la IA no tiene qué analizar.")
 
-    if opts.num_clips:
+    if live:
+        how_many = (
+            "This is the latest part of a livestream that is still on air. The transcript starts with a short piece "
+            "you already analysed for context. Only return moments that END AFTER second "
+            f"{live['min_end']:.0f} of this transcript. Return between 0 and {max(1, round(live['minutes'] / 4))} clips: "
+            "only genuinely good moments; returning 0 clips is fine if nothing stands out."
+        )
+    elif opts.num_clips:
         how_many = f"Return exactly {opts.num_clips} clips (fewer only if the video truly doesn't have enough good moments)."
     else:
         suggested = max(1, min(15, int(duration / 240) + 2))
@@ -135,7 +146,8 @@ def _loudness_per_second(wav_path: Path) -> np.ndarray:
     return 20 * np.log10(rms)
 
 
-def pick_heuristic(transcript: dict, wav_path: Path, duration: float, opts) -> list[dict]:
+def pick_heuristic(transcript: dict, wav_path: Path, duration: float, opts, wanted: int | None = None,
+                   min_end: float = 0.0) -> list[dict]:
     loud = _loudness_per_second(wav_path)
     target = (opts.min_seconds + opts.max_seconds) / 2
     words = [w for s in transcript["segments"] for w in s["words"]]
@@ -155,9 +167,11 @@ def pick_heuristic(transcript: dict, wav_path: Path, duration: float, opts) -> l
         candidates.append((score, t, end, text))
         t += step
     candidates.sort(reverse=True)
-    wanted = opts.num_clips or max(1, min(10, int(duration / 240) + 2))
+    wanted = wanted or opts.num_clips or max(1, min(10, int(duration / 240) + 2))
     chosen: list[dict] = []
     for score, start, end, text in candidates:
+        if end <= min_end + 2:
+            continue
         if any(start < c["end"] and end > c["start"] for c in chosen):
             continue
         title = " ".join(text.split()[:7]) or f"Momento {_fmt(start)}"
@@ -175,8 +189,16 @@ def pick_heuristic(transcript: dict, wav_path: Path, duration: float, opts) -> l
 
 # ---------- Ajuste fino de los cortes ----------
 
-def normalize_clips(raw: list[dict], transcript: dict, duration: float, opts) -> list[dict]:
-    """Ajusta los cortes a inicios/finales de palabra, respeta duraciones y quita solapes."""
+def normalize_clips(raw: list[dict], transcript: dict, duration: float, opts, min_end: float = 0.0,
+                    avoid: list[tuple[float, float]] | None = None, limit: int | None = None) -> list[dict]:
+    """Ajusta los cortes a inicios/finales de palabra, respeta duraciones y quita solapes.
+
+    min_end: descarta clips que terminan antes (ya se analizaron en el bloque anterior de un directo).
+    avoid: tramos ya usados por otros clips.
+    """
+    avoid = list(avoid or [])
+    if limit is None:
+        limit = opts.num_clips or None
     words = [w for s in transcript["segments"] for w in s["words"]]
     starts = np.array([w["start"] for w in words]) if words else np.array([])
     ends = np.array([w["end"] for w in words]) if words else np.array([])
@@ -209,7 +231,11 @@ def normalize_clips(raw: list[dict], transcript: dict, duration: float, opts) ->
         e = min(duration, e + 0.4)
         if e - s < 3:
             continue
+        if e <= min_end + 2:
+            continue
         if any(s < r["end"] - 1 and e > r["start"] + 1 for r in result):
+            continue
+        if any(s < b - 1 and e > a + 1 for a, b in avoid):
             continue
         hashtags = [h.strip().lstrip("#").replace(" ", "") for h in c.get("hashtags", []) if str(h).strip()]
         result.append({
@@ -220,6 +246,6 @@ def normalize_clips(raw: list[dict], transcript: dict, duration: float, opts) ->
             "score": int(max(0, min(100, c.get("score", 0) or 0))),
             "reason": str(c.get("reason", "")).strip()[:300],
         })
-        if opts.num_clips and len(result) >= opts.num_clips:
+        if limit and len(result) >= limit:
             break
     return result

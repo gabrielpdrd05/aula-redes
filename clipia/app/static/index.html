@@ -15,6 +15,7 @@
   <div class="brand"><span class="logo">▶</span> ClipIA</div>
   <div class="top-right">
     <span id="ai-badge" class="badge"></span>
+    <button id="open-conn" class="btn ghost small" type="button">Conexiones</button>
     <form method="post" action="/logout"><button class="btn ghost small" type="submit">Salir</button></form>
   </div>
 </header>
@@ -22,17 +23,18 @@
 <main class="wrap">
   <section class="card hero">
     <h1>Pega un enlace y recibe clips listos para subir</h1>
-    <p class="muted">YouTube, Twitch, TikTok, Facebook, Kick, Instagram, X… videos o directos en vivo.</p>
+    <p class="muted">YouTube, Twitch, TikTok, Facebook, Kick, Instagram, X… Videos o <strong>directos en vivo</strong>: si está al aire, la página lo graba y va sacando clips mientras sigue.</p>
 
     <div class="tabs" role="tablist">
-      <button class="tab active" data-tab="link" role="tab">Enlace</button>
-      <button class="tab" data-tab="file" role="tab">Subir archivo</button>
+      <button class="tab active" data-tab="link" role="tab" type="button">Enlace</button>
+      <button class="tab" data-tab="file" role="tab" type="button">Subir archivo</button>
+      <button class="tab" data-tab="watch" role="tab" type="button">Vigilar canal</button>
     </div>
 
     <form id="job-form" autocomplete="off">
       <div class="tab-panel" data-panel="link">
         <div class="url-row">
-          <input id="url" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=…">
+          <input id="url" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=…  o  https://twitch.tv/canal">
           <button class="btn primary" type="submit">Generar clips</button>
         </div>
       </div>
@@ -44,8 +46,15 @@
         <div id="upload-progress" class="bar" hidden><span></span></div>
         <button class="btn primary full" type="submit">Subir y generar clips</button>
       </div>
+      <div class="tab-panel" data-panel="watch" hidden>
+        <p class="muted small-text">Deja aquí tu canal. La página revisa cada 3 minutos y, en cuanto empieces un directo, lo graba y saca clips sola (con las opciones de abajo).</p>
+        <div class="url-row">
+          <input id="watch-url" type="url" inputmode="url" placeholder="https://twitch.tv/tucanal  ·  https://youtube.com/@tucanal  ·  https://tiktok.com/@tucuenta">
+          <button class="btn primary" type="submit">Vigilar</button>
+        </div>
+      </div>
 
-      <details class="opts">
+      <details class="opts" id="opts">
         <summary>Opciones</summary>
         <div class="grid">
           <label>Cantidad de clips
@@ -87,11 +96,17 @@
               <option value="it">Italiano</option><option value="de">Alemán</option>
             </select>
           </label>
-          <label>Si es un directo, grabar hasta
+          <label>Directos: grabar como máximo
             <select id="max_live_minutes">
-              <option value="15">15 min</option><option value="30">30 min</option>
-              <option value="60" selected>1 hora</option><option value="120">2 horas</option>
+              <option value="30">30 min</option><option value="60">1 hora</option>
+              <option value="120" selected>2 horas</option><option value="180">3 horas</option>
               <option value="240">4 horas</option>
+            </select>
+          </label>
+          <label>Directos: sacar clips cada
+            <select id="live_chunk_minutes">
+              <option value="5">5 min</option><option value="10" selected>10 min</option>
+              <option value="15">15 min</option><option value="20">20 min</option>
             </select>
           </label>
         </div>
@@ -102,9 +117,19 @@
         <label>Indicaciones para la IA (opcional)
           <input id="instructions" maxlength="500" placeholder="Ej.: solo los momentos más graciosos, nada de política">
         </label>
+        <fieldset class="autopub">
+          <legend>Publicar automáticamente cada clip en</legend>
+          <div class="checks" id="autopub"></div>
+          <p class="muted small-text" id="autopub-hint"></p>
+        </fieldset>
       </details>
       <p id="form-error" class="error" hidden></p>
     </form>
+  </section>
+
+  <section id="watchers-section" hidden>
+    <h2 class="section-title">Canales vigilados</h2>
+    <div id="watchers"></div>
   </section>
 
   <section>
@@ -138,13 +163,90 @@
       <h4 class="clip-title"></h4>
       <p class="clip-reason muted"></p>
       <textarea class="caption" rows="4" readonly></textarea>
+      <div class="pub-status"></div>
       <div class="clip-buttons">
         <a class="btn primary small dl">Descargar</a>
+        <button class="btn ghost small share" type="button" hidden>Compartir</button>
         <button class="btn ghost small copy" type="button">Copiar texto</button>
+        <button class="btn ghost small pub" type="button">Publicar</button>
       </div>
     </div>
   </div>
 </template>
+
+<dialog id="pub-dialog" class="dlg">
+  <form method="dialog" id="pub-form">
+    <h3>Publicar clip</h3>
+    <label>Título <input id="pub-title" maxlength="100"></label>
+    <label>Descripción y hashtags <textarea id="pub-caption" rows="5" maxlength="2200"></textarea></label>
+    <div class="checks" id="pub-platforms"></div>
+    <p class="muted small-text" id="pub-hint"></p>
+    <p class="error" id="pub-error" hidden></p>
+    <div class="dlg-buttons">
+      <button class="btn ghost" value="cancel" type="submit" formnovalidate>Cancelar</button>
+      <button class="btn primary" id="pub-go" type="button">Publicar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="conn-dialog" class="dlg wide">
+  <div class="dlg-head"><h3>Conexiones con las plataformas</h3><button class="btn ghost small" id="conn-close" type="button">Cerrar</button></div>
+  <p class="muted small-text">Para que ClipIA publique por ti, cada plataforma pide que crees una "app de desarrollador" una sola vez (gratis). Los pasos detallados están en el README. Sin conectar nada siempre puedes usar <strong>Compartir</strong> en el celular.</p>
+
+  <section class="conn" data-platform="youtube">
+    <h4>YouTube Shorts <span class="pill" data-state></span></h4>
+    <p class="muted small-text">En Google Cloud: crea un proyecto, activa "YouTube Data API v3", crea credenciales OAuth de tipo "Aplicación web" y pon esta URL de redirección:</p>
+    <code class="redirect" data-redirect></code>
+    <div class="grid">
+      <label>Client ID <input name="client_id" autocomplete="off"></label>
+      <label>Client Secret <input name="client_secret" type="password" autocomplete="off" placeholder="(guardado)"></label>
+      <label>Privacidad
+        <select name="privacy"><option value="public">Público</option><option value="unlisted">Oculto</option><option value="private">Privado</option></select>
+      </label>
+    </div>
+    <div class="conn-buttons">
+      <button class="btn ghost small" data-save type="button">Guardar</button>
+      <a class="btn primary small" href="/connect/youtube">Conectar mi canal</a>
+      <button class="btn ghost small" data-clear type="button">Desconectar</button>
+    </div>
+  </section>
+
+  <section class="conn" data-platform="tiktok">
+    <h4>TikTok <span class="pill" data-state></span></h4>
+    <p class="muted small-text">En developers.tiktok.com: crea una app, añade "Login Kit" y "Content Posting API", y pon esta URL de redirección (TikTok exige https):</p>
+    <code class="redirect" data-redirect></code>
+    <div class="grid">
+      <label>Client Key <input name="client_key" autocomplete="off"></label>
+      <label>Client Secret <input name="client_secret" type="password" autocomplete="off" placeholder="(guardado)"></label>
+      <label>Modo
+        <select name="mode"><option value="draft">Borrador (lo terminas en la app de TikTok)</option><option value="direct">Publicar directo</option></select>
+      </label>
+      <label>Privacidad (modo directo)
+        <select name="privacy"><option value="SELF_ONLY">Solo yo (obligatorio hasta que TikTok apruebe tu app)</option><option value="PUBLIC_TO_EVERYONE">Público</option><option value="MUTUAL_FOLLOW_FRIENDS">Amigos</option></select>
+      </label>
+    </div>
+    <div class="conn-buttons">
+      <button class="btn ghost small" data-save type="button">Guardar</button>
+      <a class="btn primary small" href="/connect/tiktok">Conectar mi cuenta</a>
+      <button class="btn ghost small" data-clear type="button">Desconectar</button>
+    </div>
+  </section>
+
+  <section class="conn" data-platform="meta">
+    <h4>Instagram y Facebook <span class="pill" data-state></span></h4>
+    <p class="muted small-text">En developers.facebook.com: crea una app, genera un token (de página de Facebook, o de Instagram si no tienes página) y copia los IDs. Tu Instagram debe ser cuenta profesional (creador o empresa).</p>
+    <div class="grid">
+      <label>Token de acceso <input name="token" type="password" autocomplete="off" placeholder="(guardado)"></label>
+      <label>ID de la página de Facebook <input name="page_id" autocomplete="off" inputmode="numeric"></label>
+      <label>ID de la cuenta de Instagram <input name="ig_user_id" autocomplete="off" inputmode="numeric"></label>
+    </div>
+    <div class="conn-buttons">
+      <button class="btn primary small" data-save type="button">Guardar y probar</button>
+      <button class="btn ghost small" data-clear type="button">Desconectar</button>
+    </div>
+  </section>
+  <p class="error" id="conn-error" hidden></p>
+</dialog>
 
 <div id="toast" class="toast" hidden></div>
 <script src="/static/app.js"></script>

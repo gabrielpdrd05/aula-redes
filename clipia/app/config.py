@@ -34,9 +34,12 @@ class Settings:
         # o YouTube cuando piden "inicia sesión".
         self.cookies_file = os.environ.get("CLIPIA_COOKIES_FILE") or None
 
-        self.max_live_minutes = _int("CLIPIA_MAX_LIVE_MINUTES", 60)
+        self.max_live_minutes = _int("CLIPIA_MAX_LIVE_MINUTES", 240)
         self.keep_source = os.environ.get("CLIPIA_KEEP_SOURCE", "0") == "1"
         self.max_upload_mb = _int("CLIPIA_MAX_UPLOAD_MB", 4096)
+
+        # Dirección pública de la página (para conectar YouTube/TikTok). Ej.: https://clips.tudominio.com
+        self.public_url = (os.environ.get("CLIPIA_PUBLIC_URL") or "").rstrip("/")
 
         self.font = os.environ.get("CLIPIA_FONT", "Montserrat")
         self.fonts_dir = os.environ.get("CLIPIA_FONTS_DIR") or None

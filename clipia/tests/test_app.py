@@ -76,3 +76,53 @@ def test_full_pipeline_with_upload(client, sample_video, monkeypatch):
 
     assert client.delete(f"/api/jobs/{job_id}", headers=H).status_code == 200
     assert client.get(f"/api/jobs/{job_id}").status_code == 404
+
+
+def test_connections_never_leak_secrets(client):
+    login(client)
+    r = client.post("/api/connections/youtube", json={"client_id": "id-1", "client_secret": "SUPER-SECRETO"}, headers=H)
+    assert r.status_code == 200
+    data = client.get("/api/connections").json()
+    assert data["youtube"]["client_id"] == "id-1"
+    assert data["youtube"]["client_secret"] is True
+    assert "SUPER-SECRETO" not in client.get("/api/connections").text
+    assert data["youtube"]["redirect_uri"].endswith("/oauth/youtube/callback")
+    # Guardar con el secreto vacío no lo borra
+    client.post("/api/connections/youtube", json={"client_id": "id-2", "client_secret": ""}, headers=H)
+    assert client.get("/api/connections").json()["youtube"]["client_secret"] is True
+
+
+def test_oauth_flow_checks_state(client):
+    login(client)
+    r = client.get("/connect/youtube", follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"].startswith("https://accounts.google.com/")
+    bad = client.get("/oauth/youtube/callback?code=x&state=otro", follow_redirects=False)
+    assert "connect_error=youtube" in bad.headers["location"]
+
+
+def test_publish_requires_connected_platform(client, sample_video, monkeypatch):
+    login(client)
+    monkeypatch.setattr(jobs_mod, "transcribe", lambda *a, **k: fake_transcript(45))
+    with sample_video.open("rb") as fh:
+        job = client.post("/api/jobs/upload", files={"file": ("m.mp4", fh, "video/mp4")},
+                          data={"options": json.dumps({"num_clips": 1, "min_seconds": 10, "max_seconds": 12})},
+                          headers=H).json()
+    for _ in range(120):
+        j = client.get(f"/api/jobs/{job['id']}").json()
+        if j["status"] in ("done", "error"):
+            break
+        time.sleep(1)
+    assert j["status"] == "done"
+    r = client.post(f"/api/jobs/{job['id']}/clips/1/publish", json={"platforms": ["tiktok"]}, headers=H)
+    assert r.status_code == 400 and "Conecta primero" in r.json()["detail"]
+    assert client.post(f"/api/jobs/{job['id']}/clips/1/publish", json={"platforms": ["myspace"]}, headers=H).status_code == 400
+
+
+def test_watchers_api(client):
+    login(client)
+    r = client.post("/api/watchers", json={"url": "https://www.twitch.tv/prueba"}, headers=H)
+    assert r.status_code == 200
+    wid = r.json()["id"]
+    assert any(w["id"] == wid for w in client.get("/api/watchers").json())
+    assert client.post(f"/api/watchers/{wid}/toggle", json={"enabled": False}, headers=H).json()["enabled"] is False
+    assert client.delete(f"/api/watchers/{wid}", headers=H).status_code == 200

@@ -1,109 +1,146 @@
 # ClipIA
 
-Página web privada: pegas el enlace de un video o de un directo (YouTube, Twitch, TikTok, Facebook, Kick,
-Instagram, X…) y te devuelve **clips cortos ya editados**, listos para subir a TikTok, Reels o Shorts:
+Página web privada que convierte videos y **directos en vivo** en **clips cortos ya editados**, y los
+**publica** en YouTube Shorts, TikTok, Instagram Reels y Facebook Reels.
 
-- La **IA (Claude) lee toda la transcripción** y elige los momentos con más potencial (gancho al inicio, remate al final, sin cortar frases).
-- **Formato vertical 9:16** que **sigue la cara** de quien habla; si no hay cara (gameplay, pantalla), pone el video entero con **fondo difuminado**. También hay formato horizontal.
-- **Subtítulos animados palabra por palabra** (la palabra que suena se resalta), 4 estilos.
-- **Título gancho** en los primeros segundos.
-- **Audio normalizado** al volumen que usan TikTok/Instagram/YouTube.
-- Para cada clip: **título, descripción y hashtags** listos para copiar, y nota de 1 a 100.
-- Descarga uno por uno o **todo en un .zip**.
-- **Directos en vivo**: los graba hasta el tiempo que elijas (o hasta que pulses "Terminar grabación y sacar clips").
-- Si una plataforma no deja descargar, puedes **subir el archivo** directamente.
-- **Protegida con contraseña**: solo entras tú.
+## Qué hace
+
+- **Pegas un enlace** (YouTube, Twitch, TikTok, Facebook, Kick, Instagram, X…) o **subes un archivo**.
+- **Directos en vivo, mientras siguen al aire**: la página se conecta al directo, lo graba por bloques
+  (cada 5, 10, 15 o 20 minutos) y **va sacando clips de cada bloque sin esperar a que termine**.
+  Tú no tienes que descargar nada.
+- **Vigilar canal**: dejas tu canal y la página revisa cada 3 minutos; **en cuanto empiezas un directo,
+  arranca sola**.
+- La **IA (Claude) lee la transcripción** y elige los momentos con más potencial (gancho al inicio,
+  remate al final, sin cortar frases). En los directos, repasa también el final del bloque anterior para no
+  partir un buen momento por la mitad, y nunca repite un momento.
+- Cada clip sale **editado**:
+  - **vertical 9:16 siguiendo la cara**, o el video entero con **fondo difuminado** si no hay cara (gameplay, pantalla); también hay formato horizontal;
+  - **subtítulos animados palabra por palabra** (4 estilos) y **título gancho** en los primeros segundos;
+  - **audio normalizado** al volumen que usan las redes.
+- Para cada clip: **título, descripción y hashtags**, y una nota de 1 a 100.
+- **Publicar**:
+  - **Botón «Compartir»** en el celular: abre TikTok, Instagram o YouTube con el clip ya cargado y el texto copiado. No necesita configurar nada.
+  - **Botón «Publicar»**: lo sube directamente a las cuentas que conectes.
+  - **Publicar automáticamente**: cada clip se publica solo en cuanto está listo (ideal con directos).
+- **Privada**: entras con contraseña y los buscadores no la indexan.
 
 ## ¿Web o aplicación?
 
-Es una **aplicación web**. Funciona igual en la compu y en el celular (en el celular puedes "Añadir a pantalla de
-inicio" y queda como una app). El trabajo pesado (descargar, transcribir, editar video) lo hace el servidor, no tu
-teléfono, así que una app nativa no aportaría nada y costaría el doble de mantener. Y si algún día la quieres abrir al
+Es una **aplicación web**. Funciona igual en la compu y en el celular (en el celular: «Añadir a pantalla de
+inicio» y queda como una app). El trabajo pesado lo hace el servidor, no tu teléfono. Si algún día la abres al
 público con suscripción, una web es lo más fácil de convertir.
 
 ## Qué necesitas
 
-1. **Dónde correrla** (elige una):
-   - **Tu propia compu** (Windows, Mac o Linux) con [Docker Desktop](https://www.docker.com/products/docker-desktop/). Gratis. Solo funciona mientras la compu está prendida.
-   - **Un servidor en la nube (VPS)** para tenerla siempre disponible. Uno de 4 núcleos y 8 GB de RAM cuesta unos 8–15 USD/mes (Hetzner, Contabo, DigitalOcean…).
-2. **Una clave de Claude** en <https://console.anthropic.com> (pagas por uso: aproximadamente **0,10–0,30 USD por cada hora de video** analizado). Sin clave la app funciona en "modo básico", que elige por volumen y ritmo y es mucho peor.
+1. **Dónde correrla**. Para directos y para vigilar canales tiene que estar **encendida siempre**, así que lo
+   recomendable es un **servidor en la nube (VPS)** de 4 núcleos y 8 GB de RAM (8–15 USD/mes: Hetzner,
+   Contabo, DigitalOcean…). También funciona en tu propia compu con Docker Desktop, pero solo mientras esté prendida.
+2. **Una clave de Claude** en <https://console.anthropic.com>. Se paga por uso: aproximadamente
+   **0,10–0,30 USD por cada hora de video**. Sin clave funciona en un «modo básico» mucho peor.
+3. **Un dominio** (unos 10 USD/año). Es obligatorio para conectar TikTok, que solo acepta https, y recomendable para todo lo demás.
 
-La transcripción (Whisper) corre en tu propio servidor y es gratis.
+## Instalación en un servidor (recomendado)
 
-## Instalación en tu compu (la forma más fácil)
-
-1. Instala Docker Desktop y ábrelo.
-2. Descarga esta carpeta `clipia`.
-3. Copia `.env.example` como `.env` y edítalo:
-   - `CLIPIA_PASSWORD`: tu contraseña.
-   - `CLIPIA_SECRET`: cualquier texto largo y aleatorio.
-   - `ANTHROPIC_API_KEY`: tu clave de Claude.
-4. Abre una terminal en la carpeta `clipia` y ejecuta:
-   ```bash
-   docker compose up -d --build
-   ```
-5. Entra a <http://localhost:8000>. Desde el celular en la misma red WiFi: `http://IP-DE-TU-COMPU:8000`.
-
-La primera vez tarda unos minutos en construirse y, en el primer video, en bajar el modelo de voz (~500 MB).
-
-Para apagarla: `docker compose down`. Para actualizar tras cambios: `docker compose up -d --build`.
-
-## Instalación en un servidor con tu dominio y HTTPS
-
-1. Compra un VPS con Ubuntu e instala Docker (`curl -fsSL https://get.docker.com | sh`).
+1. Crea un VPS con Ubuntu e instala Docker: `curl -fsSL https://get.docker.com | sh`
 2. Apunta un subdominio (por ejemplo `clips.tudominio.com`) a la IP del servidor (registro DNS tipo A).
-3. Copia la carpeta `clipia` al servidor y crea el `.env` como arriba, añadiendo:
+3. Descarga este repositorio en el servidor:
+   `git clone https://github.com/TU_USUARIO/clipia.git && cd clipia`
+4. `cp .env.example .env` y edita el archivo `.env`:
    ```
+   CLIPIA_PASSWORD=una-contraseña-larga
+   CLIPIA_SECRET=texto-aleatorio-largo
+   ANTHROPIC_API_KEY=sk-ant-...
    CLIPIA_DOMAIN=clips.tudominio.com
+   CLIPIA_PUBLIC_URL=https://clips.tudominio.com
    CLIPIA_BIND=127.0.0.1
    CLIPIA_SECURE_COOKIES=1
    ```
-4. Arranca con HTTPS automático:
-   ```bash
-   docker compose --profile https up -d --build
-   ```
-5. Entra a `https://clips.tudominio.com`.
+5. Arranca con HTTPS automático: `docker compose --profile https up -d --build`
+6. Entra a `https://clips.tudominio.com`.
 
-## Cuánto tarda
+Actualizar a una versión nueva: `git pull && docker compose --profile https up -d --build`
 
-En un servidor de 4 núcleos sin tarjeta gráfica, con el modelo `small`: un video de 1 hora tarda más o menos
-15–25 minutos en total (lo más lento es transcribir). Cada clip se edita en 10–30 segundos. Con
-`CLIPIA_WHISPER_MODEL=base` va el doble de rápido con algo menos de precisión en los subtítulos.
+### En tu propia compu
 
-## Cuando una plataforma pide "iniciar sesión"
+Instala Docker Desktop, crea el `.env` (sin las líneas de dominio), ejecuta `docker compose up -d --build` y
+entra a <http://localhost:8000>. Desde el celular, en la misma red WiFi: `http://IP-DE-TU-COMPU:8000`.
 
-YouTube, TikTok, Facebook e Instagram a veces bloquean descargas desde servidores. Solución:
+## Conectar las plataformas para publicar
 
-1. Instala en tu navegador una extensión que exporte cookies en formato `cookies.txt`
-   (por ejemplo "Get cookies.txt LOCALLY").
+Se hace **una sola vez**, desde la página, botón **«Conexiones»**. Cada plataforma pide crear una «app de
+desarrollador» gratuita. Hazlo desde una computadora: son unos 15–30 minutos por plataforma.
+
+### YouTube Shorts
+
+1. Entra a <https://console.cloud.google.com>, crea un proyecto y activa **YouTube Data API v3**.
+2. En «Pantalla de consentimiento OAuth», elige «Externo» y añade tu correo como «usuario de prueba».
+3. En «Credenciales», crea un «ID de cliente OAuth» de tipo **Aplicación web** y pega como URI de redirección la
+   que te muestra ClipIA en «Conexiones» (`https://clips.tudominio.com/oauth/youtube/callback`).
+4. Copia el Client ID y el Client Secret en ClipIA, pulsa **Guardar** y después **Conectar mi canal**.
+
+> Google deja los videos subidos desde apps nuevas como **privados** hasta que pides la verificación de la app
+> (formulario «YouTube API Services – Audit», gratis). Mientras tanto, cambia la visibilidad en YouTube Studio
+> con un toque.
+
+### TikTok
+
+1. Entra a <https://developers.tiktok.com>, crea una app y añade los productos **Login Kit** y **Content Posting API**.
+2. Pon como Redirect URI la que te muestra ClipIA (`https://clips.tudominio.com/oauth/tiktok/callback`).
+3. Copia el Client Key y el Client Secret en ClipIA, pulsa **Guardar** y después **Conectar mi cuenta**.
+4. Modo recomendado: **Borrador**. El clip llega a tus notificaciones de TikTok y lo publicas desde la app con un toque, pudiendo añadir sonidos de moda.
+
+> El modo «Publicar directo» solo deja publicar en **privado** hasta que TikTok revise y apruebe tu app (desde
+> el panel de desarrolladores, «Submit for review»).
+
+### Instagram Reels y Facebook Reels
+
+1. Tu Instagram debe ser **cuenta profesional** (creador o empresa).
+2. Entra a <https://developers.facebook.com>, crea una app de tipo «Empresa».
+3. Opción A, con página de Facebook vinculada a tu Instagram: añade «Inicio de sesión con Facebook para empresas»,
+   y en el «Explorador de la API Graph» genera un **token de página** con los permisos
+   `pages_manage_posts`, `pages_read_engagement`, `instagram_basic` e `instagram_content_publish`.
+   Conviértelo en token de larga duración, que no caduca. Copia el ID de la página y el ID de tu cuenta de Instagram.
+   Este token sirve para Instagram y Facebook.
+4. Opción B, solo Instagram y sin página: añade «API de Instagram con inicio de sesión de Instagram», genera un
+   token (empieza por `IG`) y copia tu ID de usuario de Instagram.
+5. Pega el token y los IDs en ClipIA y pulsa **Guardar y probar**.
+
+Mientras la app de Meta esté en «modo desarrollo», puede publicar en tus propias cuentas sin revisión.
+
+## Directos: cómo funciona
+
+1. Pegas el enlace del directo (o vigilas tu canal).
+2. La página se conecta a la señal y graba en bloques. Si la señal se cae, se reconecta sola hasta 5 veces.
+3. Cada vez que se completa un bloque, la IA lo analiza junto al final del bloque anterior y saca los clips buenos.
+   Pueden salir 0 si en ese tramo no pasó nada interesante.
+4. Los clips van apareciendo en la página y, si activaste «Publicar automáticamente», se publican solos.
+5. Termina cuando acaba el directo, cuando llega al máximo de horas o cuando pulsas **Terminar grabación**.
+   El último bloque también se analiza.
+
+Con un servidor de 4 núcleos y el modelo de voz `small`, cada bloque de 10 minutos se procesa en 2 a 4 minutos,
+así que va al ritmo del directo. Con `CLIPIA_WHISPER_MODEL=base` es el doble de rápido.
+
+## Cuando una plataforma pide «iniciar sesión»
+
+YouTube, TikTok, Facebook e Instagram a veces bloquean descargas desde servidores. Para evitarlo:
+
+1. Instala en tu navegador la extensión «Get cookies.txt LOCALLY».
 2. Entra a la plataforma con tu cuenta y exporta las cookies.
-3. Guarda el archivo como `data/cookies.txt` y añade al `.env`: `CLIPIA_COOKIES_FILE=/data/cookies.txt`
-4. Reinicia: `docker compose up -d`.
-
-Si aun así no se puede, descarga el video tú mismo y usa la pestaña **Subir archivo**.
-
-## Opciones de cada trabajo
-
-| Opción | Qué hace |
-|---|---|
-| Cantidad de clips | Un número fijo, o "los que valgan la pena" (la IA decide) |
-| Duración | 15–30 s, 20–60 s, 45–90 s o 1–3 min |
-| Formato | Vertical automático, vertical siguiendo la cara, vertical con fondo difuminado, horizontal |
-| Subtítulos | Viral amarillo, viral verde, caja oscura, minimalista; en mayúsculas o no |
-| Título gancho | Texto grande arriba durante los primeros 3,5 s |
-| Indicaciones para la IA | Por ejemplo "solo los momentos graciosos" o "nada de política" |
-| Directo | Minutos máximos de grabación |
+3. Guarda el archivo como `data/cookies.txt` en el servidor y añade al `.env`: `CLIPIA_COOKIES_FILE=/data/cookies.txt`
+4. Reinicia: `docker compose --profile https up -d`
 
 ## Ajustes del archivo `.env`
 
 | Variable | Para qué |
 |---|---|
 | `CLIPIA_PASSWORD` | Contraseña de acceso (obligatoria) |
-| `CLIPIA_SECRET` | Firma de la sesión; si cambia, tendrás que volver a entrar |
+| `CLIPIA_SECRET` | Firma de la sesión |
 | `ANTHROPIC_API_KEY` | Clave de Claude |
 | `CLIPIA_CLAUDE_MODEL` | Modelo de Claude (por defecto `claude-opus-5-5`) |
 | `CLIPIA_WHISPER_MODEL` | `tiny`, `base`, `small`, `medium`, `large-v3` |
-| `CLIPIA_MAX_LIVE_MINUTES` | Tope de grabación de directos |
+| `CLIPIA_MAX_LIVE_MINUTES` | Tope de grabación de directos (por defecto 240) |
+| `CLIPIA_PUBLIC_URL` | Dirección pública exacta, para conectar YouTube y TikTok |
 | `CLIPIA_KEEP_SOURCE` | `1` para conservar el video original (ocupa mucho disco) |
 | `CLIPIA_COOKIES_FILE` | Ruta al `cookies.txt` |
 | `CLIPIA_MAX_UPLOAD_MB` | Tamaño máximo al subir archivos |
@@ -111,32 +148,39 @@ Si aun así no se puede, descarga el video tú mismo y usa la pestaña **Subir a
 ## Cómo funciona por dentro
 
 ```
-enlace ─► yt-dlp descarga (o ffmpeg graba el directo)
-       ─► Whisper transcribe con el tiempo exacto de cada palabra
-       ─► Claude lee la transcripción y devuelve los mejores momentos (inicio, fin, título, descripción, hashtags)
-       ─► se ajustan los cortes al inicio/fin de frase
-       ─► OpenCV busca la cara para encuadrar en vertical
-       ─► ffmpeg corta, reencuadra, quema subtítulos animados, normaliza el audio y exporta MP4 (H.264 + AAC)
+enlace ─► ¿en vivo? ─sí─► ffmpeg graba en bloques ─► cada bloque: Whisper → Claude → edición → (publicar)
+          └─no──► yt-dlp descarga ─► Whisper transcribe (tiempo de cada palabra)
+                                    ─► Claude elige momentos ─► OpenCV busca la cara
+                                    ─► ffmpeg corta, reencuadra, subtitula, normaliza ─► MP4
+                                    ─► (publicar en YouTube / TikTok / Instagram / Facebook)
 ```
 
-Código: `app/pipeline/` (`download.py`, `transcribe.py`, `highlights.py`, `subtitles.py`, `render.py`),
-servidor en `app/main.py`, cola de trabajos en `app/jobs.py`, interfaz en `app/static/`.
+| Archivo | Qué hace |
+|---|---|
+| `app/main.py` | Servidor web, contraseña, rutas |
+| `app/jobs.py` | Cola de trabajos, proceso de videos y de directos |
+| `app/watchers.py` | Vigilancia de canales |
+| `app/pipeline/` | Descarga, grabación en vivo, transcripción, elección de momentos, subtítulos, edición |
+| `app/publish/` | Subida a YouTube, TikTok, Instagram y Facebook |
+| `app/connections.py` | Credenciales de las plataformas (`data/connections.json`, nunca se muestran en la página) |
+| `app/static/` | La interfaz |
 
 ## Pruebas
 
 ```bash
-pip install -r requirements.txt pytest httpx
+pip install -r requirements.txt pytest
 pytest -q
 ```
 
+Las pruebas incluyen un directo simulado: una transmisión HLS local en vivo de la que ClipIA tiene que sacar
+clips mientras sigue emitiendo.
+
 ## Importante
 
-Usa la herramienta con contenido tuyo o que tengas permiso de recortar y republicar. Subir clips de otros creadores
-sin permiso puede violar derechos de autor y las normas de las plataformas.
+Usa la herramienta con tu propio contenido o con el que tengas permiso de recortar y republicar.
 
 ## Si algún día la abres al público
 
-Lo que habría que añadir: cuentas de usuario (registro e inicio de sesión), pagos con Stripe, límites de minutos por
-plan, una cola de trabajos separada (Redis) para varios procesadores con GPU, y guardar los clips en almacenamiento
-en la nube (S3/R2). La estructura actual (cola de trabajos, procesamiento separado de la web) ya está pensada para
-crecer en esa dirección.
+Faltaría: cuentas de usuario, pagos con Stripe, límites de minutos por plan, una cola de trabajos separada
+(Redis) con varios procesadores con GPU, almacenamiento en la nube (S3/R2) y pasar la revisión de las apps de
+TikTok, Google y Meta para publicar en nombre de otros usuarios.

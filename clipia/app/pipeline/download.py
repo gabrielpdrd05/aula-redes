@@ -1,7 +1,4 @@
 """Descarga de videos y grabación de directos (YouTube, Twitch, TikTok, Facebook, Kick, X...)."""
-import subprocess
-import threading
-import time
 from pathlib import Path
 from typing import Callable
 
@@ -56,19 +53,15 @@ def download_source(
     url: str,
     out_dir: Path,
     cookies: str | None,
-    max_live_seconds: int,
     on_progress: ProgressFn,
     should_cancel: Callable[[], bool],
-    should_stop_recording: Callable[[], bool],
-) -> tuple[Path, str, bool]:
-    """Devuelve (archivo, título, era_directo)."""
-    on_progress(0.0, "Leyendo el enlace…")
-    info = fetch_info(url, cookies)
+    info: dict | None = None,
+) -> tuple[Path, str]:
+    """Descarga un video ya publicado. Devuelve (archivo, título)."""
+    if info is None:
+        on_progress(0.0, "Leyendo el enlace…")
+        info = fetch_info(url, cookies)
     title = info.get("title") or info.get("fulltitle") or "video"
-
-    if info.get("is_live"):
-        path = _record_live(info, out_dir, max_live_seconds, on_progress, should_cancel, should_stop_recording)
-        return path, title, True
 
     def hook(d: dict) -> None:
         if should_cancel():
@@ -100,47 +93,4 @@ def download_source(
     files = [p for p in out_dir.glob("source.*") if p.suffix not in (".part", ".ytdl") and p.is_file()]
     if not files:
         raise PipelineError("La descarga terminó pero no se encontró el archivo.")
-    return max(files, key=lambda p: p.stat().st_size), title, False
-
-
-def _record_live(info, out_dir, max_seconds, on_progress, should_cancel, should_stop) -> Path:
-    stream_url = info.get("url")
-    if not stream_url and info.get("requested_formats"):
-        stream_url = info["requested_formats"][0].get("url")
-    if not stream_url:
-        raise PipelineError("No se encontró la señal del directo.")
-    headers = "".join(f"{k}: {v}\r\n" for k, v in (info.get("http_headers") or {}).items())
-    out = out_dir / "source.mkv"  # mkv sigue siendo válido aunque se corte la grabación
-    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-nostdin"]
-    if headers:
-        cmd += ["-headers", headers]
-    cmd += ["-i", stream_url, "-t", str(max_seconds), "-map", "0:v:0?", "-map", "0:a:0?", "-c", "copy", str(out)]
-    proc = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
-    err_lines: list[str] = []
-    threading.Thread(target=lambda: err_lines.extend(proc.stderr), daemon=True).start()
-
-    started = time.time()
-    stopped_by_user = False
-    while proc.poll() is None:
-        elapsed = time.time() - started
-        mins, secs = divmod(int(elapsed), 60)
-        on_progress(min(elapsed / max_seconds, 1.0),
-                    f"Grabando el directo… {mins:02d}:{secs:02d} de {max_seconds // 60} min")
-        if should_cancel():
-            proc.terminate()
-            proc.wait(10)
-            raise Cancelled()
-        if should_stop():
-            stopped_by_user = True
-            proc.terminate()  # ffmpeg cierra el archivo correctamente con SIGTERM
-            proc.wait(15)
-            break
-        time.sleep(1)
-
-    if not out.exists() or out.stat().st_size < 50_000:
-        tail = " | ".join(line.strip() for line in err_lines[-4:])
-        raise PipelineError("No se pudo grabar el directo. " + tail)
-    if not stopped_by_user and proc.returncode not in (0, 255, -15):
-        # El directo pudo terminar antes del límite: usamos lo que se grabó.
-        pass
-    return out
+    return max(files, key=lambda p: p.stat().st_size), title
